@@ -87,22 +87,30 @@ def login():
     con.commit()
     cur.close()
     con.close()
-    error = "Incorrect Password"
+    error = "Incorrect Password" if emailFound else "Email Not Found"
     return render_template("login.html",error_statement=error, email = email)   
+
+number = random.randint(100000,999999)
 
 @app.route("/resetPassword", methods= ["GET"])
 def loadVerification():
     import smtplib
-    gmail_user = "jgs26@mail.aub.edu"
-    gmail_password = ""
-    to_email = ["jgsouaiby@gmail.com"]
-    number = random.randint(100000,999999)
-    text = f"Hello, your verification code is: " + str(number)
+    from email.message import EmailMessage
+    import ssl
+    context = ssl.create_default_context()
+    gmail_user = "hotelreservationeece351@gmail.com"
+    gmail_password = "fpdirumwuxzdzohj"
+    to_email = "jgsouaiby@gmail.com"
+    em = EmailMessage()
+    em["From"] = gmail_user
+    em["To"] = to_email
+    em["Subject"] = "Verification Code Hotel Reservation"
+    text = "Hello, your verification code is: " + str(number)
+    em.set_content(text)
     try:
-        server = smtplib.SMTP_SSL('mail.aub.edu')
-        server.ehlo()
+        server = smtplib.SMTP_SSL('smtp.gmail.com',465, context = context)
         server.login(gmail_user, gmail_password)
-        server.sendmail(gmail_user,to_email,text)
+        server.sendmail(gmail_user,to_email,em.as_string())
     except:
         print ('Something went wrong...')
     return render_template("verificationCode.html")
@@ -114,10 +122,13 @@ def resetPassword():
     output=request.form.to_dict()
     new_code = output["code"]
     if str(number) == new_code:
-        return render_template("mainPage.html")
+        return render_template("newPassword.html")
     else:
         return render_template("verificationCode.html")
 
+@app.route("/newPassword",methods = ["POST"])
+def newPassword():
+    
 
 
 if __name__=='__main__':
