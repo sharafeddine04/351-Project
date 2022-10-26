@@ -88,7 +88,35 @@ def login():
     cur.close()
     con.close()
     error = "Incorrect Password"
-    return render_template("login.html",error_statement=error, email = email)         
+    return render_template("login.html",error_statement=error, email = email)   
+
+@app.route("/resetPassword", methods= ["GET"])
+def loadVerification():
+    import smtplib
+    gmail_user = "jgs26@mail.aub.edu"
+    gmail_password = ""
+    to_email = ["jgsouaiby@gmail.com"]
+    number = random.randint(100000,999999)
+    text = f"Hello, your verification code is: " + str(number)
+    try:
+        server = smtplib.SMTP_SSL('mail.aub.edu')
+        server.ehlo()
+        server.login(gmail_user, gmail_password)
+        server.sendmail(gmail_user,to_email,text)
+    except:
+        print ('Something went wrong...')
+    return render_template("verificationCode.html")
+
+
+@app.route('/verificationCode',methods=["GET","POST"])     
+def resetPassword():
+    
+    output=request.form.to_dict()
+    new_code = output["code"]
+    if str(number) == new_code:
+        return render_template("mainPage.html")
+    else:
+        return render_template("verificationCode.html")
 
 
 

@@ -4,13 +4,13 @@
             Email: <input type="text" name="email" id="fName" value = {{email}}><br>
             Password: <input type="password" name="password" id="password"><br>
             <input type="checkbox" onclick="myFunction()">Show Password<br>
-            <input type="submit" name="login" id = "login">
+            <input type="submit" name="login" id = "login"><br>
         </form> 
         <form method="GET" action = "/resetPassword">
-            <input type="submit" name="resetPassword" id = "resetPassword" value = "Reset Password">
-        </form>       
-        {{error_statement}}      
-    </body>
+          <input type = "submit" name = "resetPassword" id = "resetPassword" value = "Reset Password">
+        </form>
+        {{error_statement}}
+   </body>
    <script>
     function myFunction() {
         var x = document.getElementById("password");
@@ -19,6 +19,6 @@
         } else {
           x.type = "password";
         }
-      }          
+      }      
 </script>
 </html>
