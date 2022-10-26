@@ -1,0 +1,29 @@
+<html>
+    <body>
+        <section class=""></section>
+        <form method="POST" action = "/signup"> 
+            Name: <input type="text" name="fName" id="fName" value = {{fName}}><br>
+            Last Name: <input type="text" name="lName" id="lName" value = {{lName}}><br>
+            Email: <input type="email" name="email" id="email" value = {{email}}><br>
+            Password: <input type="password" name="password" id="password"><br>
+            Confirm Password: <input type="password" name="confirmPassword" id="confirmPassword"><br>
+            <input type="checkbox" onclick="myFunction()">Show Password
+            <input type="checkbox" name = "HumanVerification">I'm not a robot.<br>
+            <input type="submit" name="submitSignup" id = "submitSignup">
+        </form> 
+        {{error_statement}}
+    <script>
+        function myFunction() {
+            var x = document.getElementById("password");
+            var y = document.getElementById("confirmPassword");
+            if (x.type === "password" && y.type == "password") {
+              x.type = "text";
+              y.type = "text";
+            } else {
+              x.type = "password";
+              y.type = "password";
+            }
+          }          
+    </script>
+    </body>
+</html>

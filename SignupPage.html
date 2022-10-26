@@ -1,0 +1,39 @@
+<div class='wrapper'>
+    <form id='nameForm' method="POST">
+    <div class='form-uname'>
+        <label id='nameLable' for='nameField'>Create a username:</label>
+        <input id='nameField' type='text' maxlength='25'>
+    </div>
+    <div class='form-sub'>
+        <button id='subButton' type='button'>Print your name!</button>
+    </div>
+    </form>
+    
+    <div>
+        <p id='result'></p></div>
+    </div>
+    
+<script>function getUserName() {
+    var nameField = document.getElementById('nameField').value;
+    var result = document.getElementById('result');
+    const mysql = require('mysql');
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "12345",
+        database: "users"
+      });
+      
+      con.connect(function(err) {
+        if (err)       con.end();
+        var sql = "INSERT INTO user (firstName,lastName,username,password) VALUES (nameField, '0','0','0')";
+        con.query(sql, function (err, result) {
+          if (err)       con.end();
+          con.end();
+        });
+      });
+    }
+    
+      var subButton = document.getElementById('subButton');
+      subButton.addEventListener('click', getUserName,false);  
+</script>

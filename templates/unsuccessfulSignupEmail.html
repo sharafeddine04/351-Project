@@ -1,0 +1,21 @@
+<html>
+    <body>
+        <section class=""></section>
+        <form method="POST" action = "/signup"> 
+            Name: <input type="password" name="fName" id="fName" value = {{fName}}><br>
+            Last Name: <input type="text" name="lName" id="lName" value = {{lName}}><br>
+            Email: <input type="email" name="email" id="email" value = {{email}}><br>
+            Password: <input type="text" name="password" id="fName"><br>
+            Confirm Password: <input type="text" name="confirmPassword" id="fName"><br>
+            <input type="checkbox" name = "HumanVerification">I'm not a robot.<br>
+            <input type="submit" name="submitSignup" id = "submitSignup">
+        </form> 
+        Email already used. Press here to reset your password:
+        <form method="GET" action = "/resetPassword">
+            <input type="submit" name="resetPassword" id = "resetPassword" value = "Reset Password">
+        </form>             
+        <form method="GET" action = "/goToLogin"> 
+            <input type="submit" name="submitLogin" id = "submitLogin" value = "Login">
+        </form> 
+    </body>
+</html>
