@@ -92,33 +92,40 @@ def login():
 
 number = random.randint(100000,999999)
 
-@app.route("/resetPassword", methods= ["GET"])
+@app.route("/resetPassword", methods= ["GET","POST"])
 def loadVerification():
+    return render_template("verificationCode.html")
+
+
+verification_email = ""
+
+@app.route("/sendVerification",methods = ["GET","POST"])
+def sendVerification():
+    output = request.form.to_dict()
+    print(output)
     import smtplib
     from email.message import EmailMessage
     import ssl
     context = ssl.create_default_context()
     gmail_user = "hotelreservationeece351@gmail.com"
     gmail_password = "fpdirumwuxzdzohj"
-    to_email = "jgsouaiby@gmail.com"
+    verification_email = output["email"]
     em = EmailMessage()
     em["From"] = gmail_user
-    em["To"] = to_email
+    em["To"] = verification_email
     em["Subject"] = "Verification Code Hotel Reservation"
     text = "Hello, your verification code is: " + str(number)
     em.set_content(text)
     try:
         server = smtplib.SMTP_SSL('smtp.gmail.com',465, context = context)
         server.login(gmail_user, gmail_password)
-        server.sendmail(gmail_user,to_email,em.as_string())
+        server.sendmail(gmail_user,verification_email,em.as_string())
     except:
         print ('Something went wrong...')
     return render_template("verificationCode.html")
 
-
 @app.route('/verificationCode',methods=["GET","POST"])     
 def resetPassword():
-    
     output=request.form.to_dict()
     new_code = output["code"]
     if str(number) == new_code:
@@ -126,9 +133,9 @@ def resetPassword():
     else:
         return render_template("verificationCode.html")
 
-@app.route("/newPassword",methods = ["POST"])
-def newPassword():
-    
+# @app.route("/newPassword",methods = ["POST"])
+# def newPassword():
+
 
 
 if __name__=='__main__':
