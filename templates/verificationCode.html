@@ -5,6 +5,7 @@
             Email <input type = "text" name = "email" id = "email" value = {{email}}>
             <input type = "submit" name = "emailSubmit" id = "emailSubmit" value = "Get Code"><br>
         </form>
+        {{error_statement}}
         <form method="post" action = "/verificationCode">
             Verification Code <input type = "text" name = "code" id = "code">
             <input type = "submit" name = "codeSubmit" id = "codeSubmit">
