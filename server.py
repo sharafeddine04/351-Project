@@ -122,7 +122,7 @@ def sendVerification():
         server.sendmail(gmail_user,verification_email,em.as_string())
     except:
         print ('Something went wrong...')
-    return render_template("verificationCode.html")
+    return render_template("verificationCode.html",email = verification_email)
 
 @app.route('/verificationCode',methods=["GET","POST"])     
 def resetPassword():
@@ -133,10 +133,22 @@ def resetPassword():
     else:
         return render_template("verificationCode.html")
 
-# @app.route("/newPassword",methods = ["POST"])
-# def newPassword():
-
-
+@app.route("/changePassword",methods = ["GET","POST"])
+def newPassword():
+    output=request.form.to_dict()
+    password = output["newPassword"]
+    confirmpassword = output["confirmNewPassword"]
+    if password!=confirmpassword:
+        error = "Passwords dont match"
+        return render_template("newPassword.html", error_statement = error)
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    cur=con.cursor()
+    cur.execute("UPDATE user SET password = %s WHERE email=%s",(password,"okandil21@gmail.com"))
+    con.commit()
+    cur.close()
+    con.close()
+    
+    return render_template("mainPage.html")   
 
 if __name__=='__main__':
     app.run()

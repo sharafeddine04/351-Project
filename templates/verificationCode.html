@@ -2,7 +2,7 @@
 <html>
     <body>
         <form method = "post" action = "/sendVerification">
-            Email <input type = "text" name = "email" id = "email">
+            Email <input type = "text" name = "email" id = "email" value = {{email}}>
             <input type = "submit" name = "emailSubmit" id = "emailSubmit" value = "Get Code"><br>
         </form>
         <form method="post" action = "/verificationCode">
