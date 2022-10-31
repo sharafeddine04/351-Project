@@ -1,6 +1,6 @@
 <html>
     <body>
-        <form method="POST" action = "/signup"> 
+        <form method="POST" action = "/signupVerification"> 
             Name: <input type="text" name="fName" id="fName" value = {{fName}}><br>
             Last Name: <input type="text" name="lName" id="lName" value = {{lName}}><br>
             Email: <input type="email" name="email" id="email" value = {{email}}><br>
@@ -8,7 +8,7 @@
             Confirm Password: <input type="password" name="confirmPassword" id="confirmPassword"><br>
             <input type="checkbox" onclick="myFunction()">Show Password
             <input type="checkbox" name = "HumanVerification">I'm not a robot.<br>
-            <input type="submit" name="submitSignup" id = "submitSignup">
+            <input type="submit" name="submitSignup" id = "submitSignup" value = "Get verification code">
         </form> 
         {{error_statement}}
     <script>
