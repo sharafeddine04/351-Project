@@ -153,7 +153,7 @@ def resetPassword():
     if str(number) == new_code:
         return render_template("newPassword.html")
     else:
-        return render_template("verificationCode.html")
+        return render_template("verificationCode.html",error = "Verification Code is nt same as entered code", email = session["verification_email"])
 
 @app.route("/changePassword",methods = ["GET","POST"])
 def newPassword():
