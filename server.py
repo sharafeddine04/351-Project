@@ -1,3 +1,4 @@
+import datetime
 import random
 from flask import Flask,render_template,request,session
 import mysql.connector
@@ -196,6 +197,31 @@ def newPassword():
     con.close()
     
     return render_template("mainPage.html",changePassSuccess="Password Changed Successfully")   
+
+@app.route("/loadReservationPage",methods = ["GET","POST"])
+def loadReservation():
+    return render_template("reservationPage.html")   
+
+@app.route("/reserveRoom",methods = ["GET","POST"])
+def reserve():
+    output=request.form.to_dict()
+    startDate = output["startDate"]
+    startDate = datetime.date(int(startDate[0:4]),int(startDate[5:7]),int(startDate[8:10]))
+    endDate = output["endDate"]
+    endDate = datetime.date(int(endDate[0:4]),int(endDate[5:7]),int(endDate[8:10]))
+    roomType = output["roomType"]
+    if endDate<=startDate:
+        return render_template("reservationPage.html", error = "Please select a valid date range")
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    cur=con.cursor()
+    cur.execute("insert into "+roomType+" values(%s,%s,%s)",(session['email'],startDate,endDate))
+    con.commit()
+    cur.close()
+    con.close()
+    return render_template("reservationPage.html", error = "successful")
+
+
+
 
 if __name__=='__main__':
     app.run()

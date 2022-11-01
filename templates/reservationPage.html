@@ -1,0 +1,33 @@
+<html>
+    <form method = "Post" action="reserveRoom">
+        Start Date: <input type="date" name = "startDate" id = "startDate"> <br><br>
+        End Date: <input type="date" name = "endDate" id = "endDate" min = > <br><br>
+        Choose your type of room: <select name="roomType">
+            <option value="none" selected disabled hidden>Select an Option</option>
+            <option value="singleRoom">Single Room</option>
+            <option value="doubleRoom">Double Room</option>
+            <option value="suiteFor1">Suite for One</option>
+            <option value="Double Suite">Double Suite</option>
+          </select><br>
+        <input type="submit" name="loadReservationPage" id = "loadReservationPage" value = "Reserve a Room"><br>
+    </form>
+    {{error}}
+    <script>
+        var today = new Date();
+        var dd = today.getDate();
+        var mm = today.getMonth() + 1; //January is 0!
+        var yyyy = today.getFullYear();
+        
+        if (dd < 10) {
+           dd = '0' + dd;
+        }
+        
+        if (mm < 10) {
+           mm = '0' + mm;
+        } 
+            
+        today = yyyy + '-' + mm + '-' + dd;
+        document.getElementById("startDate").setAttribute("min", today);
+        document.getElementById("endDate").setAttribute("min",today)
+    </script>
+</html>
