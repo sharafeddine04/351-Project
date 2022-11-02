@@ -5,7 +5,6 @@ import mysql.connector
 import smtplib
 from email.message import EmailMessage
 import ssl
-import person
 
 app = Flask(__name__)
 app.secret_key = 'osj'
@@ -14,8 +13,8 @@ lastname = ""
 email=""
 password=""
 number = random.randint(100000,999999)
-capacity = {"singleroom":3}
-
+capacity = {"singleroom":3, "doubleroom":4, "suitfor1":2, "doublesuit":2}
+room = {"singleroom":"Single Room", "doubleroom":"Double Room", "suitfor1":"Suite For 1", "doublesuit":"Double Suite"}
 
 @app.route('/')
 def mainPage():
@@ -92,7 +91,7 @@ def verifySignup():
         con.close()
         return render_template("profile.html")    
     else:
-        return render_template("signupVerificationCode.html",error = "Verification Code is nt same as entered code")
+        return render_template("signupVerification.html",error = "Verification Code is not same as entered code")
 
 
 @app.route('/login',methods=["POST","GET"])
@@ -215,7 +214,7 @@ def reserve():
     if endDate<=startDate:
         return render_template("reservationPage.html", error = "Please select a valid date range")
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
-    sql = 'SELECT * from singleroom'
+    sql = 'SELECT * from '+roomType
     cur=con.cursor()
     cur.execute(sql)
     result = cur.fetchall()
@@ -227,12 +226,31 @@ def reserve():
         if ((startDate<= end and startDate>=start) or (endDate<= end and endDate>=start) or (startDate<=start  and endDate>=end)):
             numberOfRoomsUsed+=1
     if (numberOfRoomsUsed < capacity[roomType]):
-        cur.execute("insert into "+roomType+" values(%s,%s,%s,%s)",(max,session['email'],startDate,endDate))
+        cur.execute("insert into "+roomType+" values(%s,%s,%s,%s,%s)",(max,session['email'],startDate,endDate,room[roomType]))
         con.commit()
         cur.close()
         con.close()
         return render_template("reservationPage.html", error = "successful")
     return render_template("reservationPage.html", error = "No "+ roomType +" available for reservation in selected date")
+
+@app.route("/getPreviousReservations",methods = ["GET","POST"])
+def previousReservaions():
+    prevRes = []
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    cur=con.cursor()
+    sql = """SELECT * FROM singleroom WHERE email="""+session["email"]+"""
+Union
+SELECT * FROM doubleroom WHERE email="""+session["email"]+"""
+Union
+SELECT * FROM suitefor1 WHERE email="""+session["email"]+"""
+Union
+SELECT * FROM doublesuite WHERE email="""+session["email"]+"""
+"""
+    cur.execute(sql)
+    result = cur.fetchall()
+    n = len(result)
+    
+
 
 
 
