@@ -14,6 +14,8 @@ lastname = ""
 email=""
 password=""
 number = random.randint(100000,999999)
+capacity = {"singleroom":3}
+
 
 @app.route('/')
 def mainPage():
@@ -213,12 +215,24 @@ def reserve():
     if endDate<=startDate:
         return render_template("reservationPage.html", error = "Please select a valid date range")
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    sql = 'SELECT * from singleroom'
     cur=con.cursor()
-    cur.execute("insert into "+roomType+" values(%s,%s,%s)",(session['email'],startDate,endDate))
-    con.commit()
-    cur.close()
-    con.close()
-    return render_template("reservationPage.html", error = "successful")
+    cur.execute(sql)
+    result = cur.fetchall()
+    max = len(result)+1
+    numberOfRoomsUsed = 0
+    for i in range(len(result)):
+        start = result[i][2]
+        end = result[i][3]
+        if ((startDate<= end and startDate>=start) or (endDate<= end and endDate>=start) or (startDate<=start  and endDate>=end)):
+            numberOfRoomsUsed+=1
+    if (numberOfRoomsUsed < capacity[roomType]):
+        cur.execute("insert into "+roomType+" values(%s,%s,%s,%s)",(max,session['email'],startDate,endDate))
+        con.commit()
+        cur.close()
+        con.close()
+        return render_template("reservationPage.html", error = "successful")
+    return render_template("reservationPage.html", error = "No "+ roomType +" available for reservation in selected date")
 
 
 
