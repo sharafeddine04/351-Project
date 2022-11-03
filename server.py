@@ -238,22 +238,69 @@ def previousReservaions():
     prevRes = []
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()
-    sql = """SELECT * FROM singleroom WHERE email="""+session["email"]+"""
+    sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
 Union
-SELECT * FROM doubleroom WHERE email="""+session["email"]+"""
+SELECT * FROM doubleroom WHERE email=\""""+session["email"]+"""\"
 Union
-SELECT * FROM suitefor1 WHERE email="""+session["email"]+"""
+SELECT * FROM suitefor1 WHERE email=\""""+session["email"]+"""\"
 Union
-SELECT * FROM doublesuite WHERE email="""+session["email"]+"""
+SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
 """
     cur.execute(sql)
     result = cur.fetchall()
     n = len(result)
+    singleroom = []
+    doubleroom = []
+    suitfor1 = []
+    doublesuit = []
+    today = datetime.date.today()
+    for i in range(n):
+        startDate = result[i][2]
+        endDate = result[i][3]
+        roomType = result[i][4]
+        if today>=endDate:
+            if roomType == "singleroom" :
+                singleroom.append((startDate,endDate))
+            if roomType == "doubleroom":
+                doubleroom.append((startDate,endDate))
+            if roomType == "suitfor1":
+                suitfor1.append((startDate,endDate))
+            if roomType == "doublesuit":
+                doublesuit.append((startDate,endDate))
+    allPrevRes=""
+    n = len(singleroom)
+    for i in range(n):
+        if i == 0:
+            allPrevRes=allPrevRes+"Single Rooms:<br>"+str(singleroom[i][0])+" to "+str(singleroom[i][1])+"<br>"
+        else:
+            allPrevRes=allPrevRes+str(singleroom[i][0])+" to "+str(singleroom[i][1])+"<br>"
+    n = len(doubleroom)
+    for i in range(n):
+        if i == 0:
+            allPrevRes=allPrevRes+"Double Rooms:<br>"+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+"<br>"
+        else:
+            allPrevRes=allPrevRes+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+"<br>"
+    n = len(suitfor1)
+    for i in range(n):
+        if i == 0:
+            allPrevRes=allPrevRes+"Suite For 1:<br>"+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+"<br>"
+        else:
+            allPrevRes=allPrevRes+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+"<br>"
+    n = len(doublesuit)
+    for i in range(n):
+        if i == 0:
+            allPrevRes=allPrevRes+"Double Suite:<br>"+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"
+        else:
+            allPrevRes=allPrevRes+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"     
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html","w")
+    if (len(allPrevRes)==0):
+        f.write("<p>No Reservations have been made</p>")
+        f.close()
+        return render_template("getPreviousReservations.html")
     
-
-
-
-
+    f.write("<p>"+allPrevRes+"</p>")
+    f.close()
+    return render_template("getPreviousReservations.html")
 
 if __name__=='__main__':
     app.run()
