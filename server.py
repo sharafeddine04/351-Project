@@ -13,8 +13,8 @@ lastname = ""
 email=""
 password=""
 number = random.randint(100000,999999)
-capacity = {"singleroom":3, "doubleroom":4, "suitfor1":2, "doublesuit":2}
-room = {"singleroom":"Single Room", "doubleroom":"Double Room", "suitfor1":"Suite For 1", "doublesuit":"Double Suite"}
+capacity = {"singleroom":3, "doubleroom":4, "suitefor1":2, "doublesuite":2}
+room = {"singleroom":"Single Room", "doubleroom":"Double Room", "suitefor1":"Suite For 1", "doublesuite":"Double Suite"}
 
 
 @app.route('/')
@@ -264,9 +264,9 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
                 singleroom.append((startDate,endDate))
             if roomType == "doubleroom":
                 doubleroom.append((startDate,endDate))
-            if roomType == "suitfor1":
+            if roomType == "suitefor1":
                 suitfor1.append((startDate,endDate))
-            if roomType == "doublesuit":
+            if roomType == "doublesuite":
                 doublesuit.append((startDate,endDate))
     allPrevRes=""
     n = len(singleroom)
@@ -333,17 +333,19 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
                 singleroom.append((startDate,endDate))
             if roomType == "doubleroom":
                 doubleroom.append((startDate,endDate))
-            if roomType == "suitfor1":
+            if roomType == "suitefor1":
                 suitfor1.append((startDate,endDate))
-            if roomType == "doublesuit":
+            if roomType == "doublesuite":
                 doublesuit.append((startDate,endDate))
     allPrevRes=""
+    print(str(singleroom)+" "+str(doubleroom)+' '+str(suitfor1)+" "+str(doublesuit))
     n = len(singleroom)
     for i in range(n):
         if i == 0:
             allPrevRes=allPrevRes+"Single Rooms:<br>"+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}" name = "'+str(singleroom[i][0])+" to "+str(singleroom[i][1])+'">'+str(singleroom[i][0])+" to "+str(singleroom[i][1])+'</a><br>'
         else:
             allPrevRes='<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(singleroom[i][0])+" to "+str(singleroom[i][1])+'</a><br>'
+    n = len(doubleroom)
     for i in range(n):
         if i == 0:
             allPrevRes=allPrevRes+"Double Rooms:<br>"+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+'</a><br>'
@@ -367,7 +369,7 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
         f.write("<p>No Reservations have been made</p>")
         f.close()
         return render_template("currentReservation.html")
-    
+    f.truncate(0)
     f.write("<p>"+allPrevRes+"</p>")
     f.close()
     return render_template("currentReservation.html")
