@@ -16,6 +16,7 @@ number = random.randint(100000,999999)
 capacity = {"singleroom":3, "doubleroom":4, "suitfor1":2, "doublesuit":2}
 room = {"singleroom":"Single Room", "doubleroom":"Double Room", "suitfor1":"Suite For 1", "doublesuit":"Double Suite"}
 
+
 @app.route('/')
 def mainPage():
     return render_template("mainPage.html")
@@ -203,7 +204,7 @@ def newPassword():
 def loadReservation():
     return render_template("reservationPage.html")   
 
-@app.route("/reserveRoom",methods = ["GET","POST"])
+@app.route("/checkAvailableRooms",methods = ["GET","POST"])
 def reserve():
     output=request.form.to_dict()
     startDate = output["startDate"]
@@ -226,7 +227,7 @@ def reserve():
         if ((startDate<= end and startDate>=start) or (endDate<= end and endDate>=start) or (startDate<=start  and endDate>=end)):
             numberOfRoomsUsed+=1
     if (numberOfRoomsUsed < capacity[roomType]):
-        cur.execute("insert into "+roomType+" values(%s,%s,%s,%s,%s)",(max,session['email'],startDate,endDate,room[roomType]))
+        cur.execute("insert into "+roomType+" values(%s,%s,%s,%s,%s)",(max,session['email'],startDate,endDate,roomType))
         con.commit()
         cur.close()
         con.close()
@@ -302,5 +303,79 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     f.close()
     return render_template("getPreviousReservations.html")
 
+@app.route("/getCurrentReservations",methods = ["GET","POST"])
+def currentReservaions():
+    curRes = []
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    cur=con.cursor()
+    sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
+Union
+SELECT * FROM doubleroom WHERE email=\""""+session["email"]+"""\"
+Union
+SELECT * FROM suitefor1 WHERE email=\""""+session["email"]+"""\"
+Union
+SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
+"""
+    cur.execute(sql)
+    result = cur.fetchall()
+    n = len(result)
+    singleroom = []
+    doubleroom = []
+    suitfor1 = []
+    doublesuit = []
+    today = datetime.date.today()
+    for i in range(n):
+        startDate = result[i][2]
+        endDate = result[i][3]
+        roomType = result[i][4]
+        if today<startDate:
+            if roomType == "singleroom" :
+                singleroom.append((startDate,endDate))
+            if roomType == "doubleroom":
+                doubleroom.append((startDate,endDate))
+            if roomType == "suitfor1":
+                suitfor1.append((startDate,endDate))
+            if roomType == "doublesuit":
+                doublesuit.append((startDate,endDate))
+    allPrevRes=""
+    n = len(singleroom)
+    for i in range(n):
+        if i == 0:
+            allPrevRes=allPrevRes+"Single Rooms:<br>"+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}" name = "'+str(singleroom[i][0])+" to "+str(singleroom[i][1])+'">'+str(singleroom[i][0])+" to "+str(singleroom[i][1])+'</a><br>'
+        else:
+            allPrevRes='<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(singleroom[i][0])+" to "+str(singleroom[i][1])+'</a><br>'
+    for i in range(n):
+        if i == 0:
+            allPrevRes=allPrevRes+"Double Rooms:<br>"+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+'</a><br>'
+            print(allPrevRes)
+        else:
+            allPrevRes=allPrevRes+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+'</a><br>'
+    n = len(suitfor1)
+    for i in range(n):
+        if i == 0:
+            allPrevRes=allPrevRes+"Suite For 1:<br>"+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+'</a><br>'
+        else:
+            allPrevRes=allPrevRes+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+'</a><br>'
+    n = len(doublesuit)
+    for i in range(n):
+        if i == 0:
+            allPrevRes=allPrevRes+"Double Suite:<br>"+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+'</a><br>'
+        else:
+            allPrevRes=allPrevRes+"Double Suite:<br>"+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+'</a><br>'
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html","w")
+    if (len(allPrevRes)==0):
+        f.write("<p>No Reservations have been made</p>")
+        f.close()
+        return render_template("currentReservation.html")
+    
+    f.write("<p>"+allPrevRes+"</p>")
+    f.close()
+    return render_template("currentReservation.html")
+
+@app.route("/modifyReservation",methods = ["GET","POST"])
+def modifyReservation():
+    print(name)
+    return render_template("modifyReservation.html")
+
 if __name__=='__main__':
-    app.run()
+    app.run(port = 80)
