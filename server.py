@@ -1,6 +1,7 @@
+import os
 import datetime
 import random
-from flask import Flask,render_template,request,session
+from flask import Flask,render_template,request,session, send_file
 import mysql.connector
 import smtplib
 from email.message import EmailMessage
@@ -295,7 +296,7 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
             allPrevRes=allPrevRes+"Double Suite:<br>"+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"
         else:
             allPrevRes=allPrevRes+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"     
-    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getPreviousReservations.html","w")
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html","w")
     if (len(allPrevRes)==0):
         f.write("<p>No Reservations have been made</p>")
         f.close()
@@ -411,14 +412,18 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     allPrevRes += "</select>\n<input type='submit' name='submitSignup' id = 'modify' value ='modify'>\n"
     allPrevRes+= "<input type='submit' name='submitSignup' id = 'cancel' value ='Cancel Reservation'>\n"
     allPrevRes+= "</form>\n</body>\n</html></p>"
-    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html","w")
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html","w")
     #print(allPrevRes)
     if tot>0:
         f.write("<p>"+allPrevRes+"</p>")
         for i in range(100):
             ppp=i
         f.close()
-        return render_template("currentReservation.html")
+        f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html","r")
+        content=f.read()
+        f.close()
+        print(content)        
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html")
     else:
         f.write("<p>No current reservations</p>")
         f.close()
