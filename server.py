@@ -222,6 +222,8 @@ def reserve():
     max = len(result)+1
     numberOfRoomsUsed = 0
     for i in range(len(result)):
+        if(result[i][0]==max):
+            max+=1
         start = result[i][2]
         end = result[i][3]
         if ((startDate<= end and startDate>=start) or (endDate<= end and endDate>=start) or (startDate<=start  and endDate>=end)):
@@ -293,7 +295,7 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
             allPrevRes=allPrevRes+"Double Suite:<br>"+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"
         else:
             allPrevRes=allPrevRes+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"     
-    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html","w")
+    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getPreviousReservations.html","w")
     if (len(allPrevRes)==0):
         f.write("<p>No Reservations have been made</p>")
         f.close()
@@ -320,6 +322,10 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     result = cur.fetchall()
     n = len(result)
     singleroom = []
+    id1 =[]
+    id2=[]
+    id3=[]
+    id4=[]
     doubleroom = []
     suitfor1 = []
     doublesuit = []
@@ -331,53 +337,214 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
         if today<startDate:
             if roomType == "singleroom" :
                 singleroom.append((startDate,endDate))
+                id1.append(result[i][0])
             if roomType == "doubleroom":
                 doubleroom.append((startDate,endDate))
+                id2.append(result[i][0])
             if roomType == "suitefor1":
                 suitfor1.append((startDate,endDate))
+                id3.append(result[i][0])
             if roomType == "doublesuite":
                 doublesuit.append((startDate,endDate))
+                id4.append(result[i][0])
+    tot=0
     allPrevRes=""
-    print(str(singleroom)+" "+str(doubleroom)+' '+str(suitfor1)+" "+str(doublesuit))
-    n = len(singleroom)
+    n=len(singleroom)
+    tot +=n
+    allPrevRes="<html>\n <body>\n <form method='POST' action = '/modifyReservation'> \n<label for='modifyrooms'>Pick a reservation:</label>\n <select name='modifyroom' id='cars'>\n"
+    u =  "<optgroup label='single rooms'>\n"
+    if n>0:
+        allPrevRes +=u
     for i in range(n):
-        if i == 0:
-            allPrevRes=allPrevRes+"Single Rooms:<br>"+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}" name = "'+str(singleroom[i][0])+" to "+str(singleroom[i][1])+'">'+str(singleroom[i][0])+" to "+str(singleroom[i][1])+'</a><br>'
-        else:
-            allPrevRes='<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(singleroom[i][0])+" to "+str(singleroom[i][1])+'</a><br>'
-    n = len(doubleroom)
+        
+        x= ""
+        x+= str(singleroom[i][0])+" to "+str(singleroom[i][1])
+        z="singleroom"
+        z+=str(id1[i])
+        allPrevRes += "<option value=" +str(z)+ "'>'" +x+"</option>\n"
+    if n>0:
+        allPrevRes+="</optgroup>"
+    
+    n=len(doubleroom)
+    tot+=n
+    u =  "<optgroup label='double rooms'>\n"
+    if n>0:
+        allPrevRes +=u
     for i in range(n):
-        if i == 0:
-            allPrevRes=allPrevRes+"Double Rooms:<br>"+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+'</a><br>'
-            print(allPrevRes)
-        else:
-            allPrevRes=allPrevRes+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+'</a><br>'
-    n = len(suitfor1)
+        x= ""
+        x+= str(doubleroom[i][0])+" to "+str(doubleroom[i][1])
+        z="doubleroom"
+        z+=str(id2[i])
+        allPrevRes += "<option value=" +str(z)+ "'>'" +x+"</option>\n"
+    if n>0:
+        allPrevRes+="</optgroup>"
+
+    n=len(suitfor1)
+    tot+=n
+    u =  "<optgroup label='suite for 1'>\n"
+    if n>0:
+        allPrevRes +=u
     for i in range(n):
-        if i == 0:
-            allPrevRes=allPrevRes+"Suite For 1:<br>"+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+'</a><br>'
-        else:
-            allPrevRes=allPrevRes+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+'</a><br>'
-    n = len(doublesuit)
+        x= ""
+        x+= str(suitfor1[i][0])+" to "+str(suitfor1[i][1])
+        z="suiteforOne"
+        z+=str(id3[i])
+        allPrevRes += "<option value=" +str(z)+ "'>'" +x+"</option>\n"
+    if n>0:
+        allPrevRes+="</optgroup>"
+    
+    n=len(doublesuit)
+    tot+=n
+    u =  "<optgroup label='double suite'>\n"
+    if n>0:
+        allPrevRes +=u
     for i in range(n):
-        if i == 0:
-            allPrevRes=allPrevRes+"Double Suite:<br>"+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+'</a><br>'
-        else:
-            allPrevRes=allPrevRes+"Double Suite:<br>"+'<a href="'+"{"+"{"+'url_for('+"'modifyReservation'"+')'+"}"+'}">'+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+'</a><br>'
-    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html","w")
-    if (len(allPrevRes)==0):
-        f.write("<p>No Reservations have been made</p>")
+        x= ""
+        x+= str(doublesuit[i][0])+" to "+str(doublesuit[i][1])
+        z="doublesuite"
+        z+=str(id4[i])
+        allPrevRes += "<option value=" +str(z)+ "'>'" +x+"</option>\n"
+    if n>0:
+        allPrevRes+="</optgroup>"
+
+
+    allPrevRes += "</select>\n<input type='submit' name='submitSignup' id = 'modify' value ='modify'>\n"
+    allPrevRes+= "<input type='submit' name='submitSignup' id = 'cancel' value ='Cancel Reservation'>\n"
+    allPrevRes+= "</form>\n</body>\n</html></p>"
+    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html","w")
+    #print(allPrevRes)
+    if tot>0:
+        f.write("<p>"+allPrevRes+"</p>")
+        for i in range(100):
+            ppp=i
         f.close()
         return render_template("currentReservation.html")
-    f.truncate(0)
-    f.write("<p>"+allPrevRes+"</p>")
-    f.close()
-    return render_template("currentReservation.html")
+    else:
+        f.write("<p>No current reservations</p>")
+        f.close()
+        return render_template("currentReservation.html")
+
+    
+
 
 @app.route("/modifyReservation",methods = ["GET","POST"])
 def modifyReservation():
-    print(name)
-    return render_template("modifyReservation.html")
+    output = request.form.to_dict()
+    session["modification"] = output["modifyroom"]
+    if output["submitSignup"]=="modify":
+        return render_template("modifyReservation.html")
+    else:
+        res = output["modifyroom"]
+        inte=['1','2','3','4','5','6','7','8','9','0']
+        n = len(res)
+        j=0
+        t=""
+        for i in range(n):
+            if res[i] not in inte:
+                t+=res[i]
+            else:
+                j=i
+                break
+        x = res[j:n-1]
+        con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+        cur=con.cursor()
+        sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
+    Union
+    SELECT * FROM doubleroom WHERE email=\""""+session["email"]+"""\"
+    Union
+    SELECT * FROM suitefor1 WHERE email=\""""+session["email"]+"""\"
+    Union
+    SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
+    """
+        cur.execute(sql)
+        result = cur.fetchall()
+        n = len(result)
+
+        if t=="singleroom":
+            cur.execute("DELETE FROM singleroom where id=\""""+x+"""\"""")
+            con.commit()
+        elif t=="doubleroom":
+            cur.execute("DELETE FROM doubleroom where id=\""""+x+"""\"""")
+            con.commit()
+        elif t =="doublesuite":
+            cur.execute("DELETE FROM doublesuite where id=\""""+x+"""\"""")
+            con.commit()
+        else:
+            cur.execute("DELETE FROM suitefor1 where id=\""""+x+"""\"""")
+            con.commit()
+
+        return render_template("profile.html")
+
+
+@app.route("/makeModification", methods=["GET","POST"])
+def makechanges():
+    res = session["modification"]
+    inte=['1','2','3','4','5','6','7','8','9','0']
+    n = len(res)
+    j=0
+    t=""
+    for i in range(n):
+        if res[i] not in inte:
+            t+=res[i]
+        else:
+            j=i
+            break
+    x = res[j:n-1]
+    
+    output = request.form.to_dict()
+    startDate = output["startDate"]
+    startDate = datetime.date(int(startDate[0:4]),int(startDate[5:7]),int(startDate[8:10]))
+    endDate = output["endDate"]
+    endDate = datetime.date(int(endDate[0:4]),int(endDate[5:7]),int(endDate[8:10]))
+    roomType = output["roomType"]
+
+
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    cur=con.cursor()
+    sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
+Union
+SELECT * FROM doubleroom WHERE email=\""""+session["email"]+"""\"
+Union
+SELECT * FROM suitefor1 WHERE email=\""""+session["email"]+"""\"
+Union
+SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
+"""
+    cur.execute(sql)
+    result = cur.fetchall()
+    n = len(result)
+
+    if t=="singleroom":
+        cur.execute("DELETE FROM singleroom where id=\""""+x+"""\"""")
+        con.commit()
+    elif t=="doubleroom":
+        cur.execute("DELETE FROM doubleroom where id=\""""+x+"""\"""")
+        con.commit()
+    elif t =="doublesuite":
+        cur.execute("DELETE FROM doublesuite where id=\""""+x+"""\"""")
+        con.commit()
+    else:
+        cur.execute("DELETE FROM suitefor1 where id=\""""+x+"""\"""")
+        con.commit()
+    
+    cur.execute('SELECT * from '+roomType)
+    result1 = cur.fetchall()
+    y=int(x)
+    for i in range(len(result1)):
+        if(result1[i][0]==y):
+            y+=1
+    cur.execute("insert into "+roomType+" values(%s,%s,%s,%s,%s)",(str(y),session['email'],startDate,endDate,roomType))
+    con.commit()
+        
+
+
+
+    return render_template("profile.html")
+
+
+@app.route("/cancelReservation", methods=["GET","POST"])
+def deleteRes():
+    output = request.form.to_dict()
+    
 
 if __name__=='__main__':
     app.run(port = 80)
