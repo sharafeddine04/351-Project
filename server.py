@@ -47,7 +47,7 @@ def signup():
     if confirmPass!=session["password"]:
         error = "Password is not the same as confirmed password"
         return render_template("signupPage.html",error_statement=error, fName = session["name"], lName = session["lastname"], email = session["email"])
-    con=mysql.connector.connect(user='root',password='Mvpg13_02',host='localhost',database='website')
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()   
     sql = 'SELECT * from user'
     cur.execute(sql)
@@ -85,7 +85,7 @@ def verifySignup():
     output=request.form.to_dict()
     new_code = output["code"]
     if str(number) == new_code:
-        con=mysql.connector.connect(user='root',password='Mvpg13_02',host='localhost',database='website')
+        con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
         cur=con.cursor()
         cur.execute("insert into user values(%s,%s,%s,%s)",(session['email'],session["name"],session['lastname'],session["password"]))
         con.commit()
@@ -101,7 +101,7 @@ def login():
     output=request.form.to_dict()
     session["email"]=output['email']
     session["password"]=output['password']
-    con=mysql.connector.connect(user='root',password='Mvpg13_02',host='localhost',database='website')
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     sql = '''SELECT * from user'''
     cur=con.cursor()   
     cur.execute(sql)
@@ -140,7 +140,7 @@ def sendVerification():
     gmail_password = "fpdirumwuxzdzohj"
     verification_email = output["email"]
 
-    con=mysql.connector.connect(user='root',password='Mvpg13_02',host='localhost',database='website')
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()   
     sql = 'SELECT * from user'
     cur.execute(sql)
@@ -192,7 +192,7 @@ def newPassword():
     if password!=confirmpassword:
         error = "Passwords dont match"
         return render_template("newPassword.html", error_statement = error)
-    con=mysql.connector.connect(user='root',password='Mvpg13_02',host='localhost',database='website')
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()
     cur.execute("UPDATE user SET password = %s WHERE email=%s",(password,session["verification_email"]))
     con.commit()
@@ -215,7 +215,7 @@ def reserve():
     roomType = output["roomType"]
     if endDate<=startDate:
         return render_template("reservationPage.html", error = "Please select a valid date range")
-    con=mysql.connector.connect(user='root',password='Mvpg13_02',host='localhost',database='website')
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     sql = 'SELECT * from '+roomType
     cur=con.cursor()
     cur.execute(sql)
@@ -229,7 +229,7 @@ def reserve():
         end = result[i][3]
         if ((startDate<= end and startDate>=start) or (endDate<= end and endDate>=start) or (startDate<=start  and endDate>=end)):
             numberOfRoomsUsed+=1
-    print(numberOfRoomsUsed)
+    
     if (numberOfRoomsUsed < capacity[roomType]):
         cur.execute("insert into "+roomType+" values(%s,%s,%s,%s,%s)",(max,session['email'],startDate,endDate,roomType))
         con.commit()
@@ -241,7 +241,7 @@ def reserve():
 @app.route("/getPreviousReservations",methods = ["GET","POST"])
 def previousReservaions():
     prevRes = []
-    con=mysql.connector.connect(user='root',password='Mvpg13_02',host='localhost',database='website')
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()
     sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
 Union
@@ -310,7 +310,7 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
 @app.route("/getCurrentReservations",methods = ["GET","POST"])
 def currentReservaions():
     curRes = []
-    con=mysql.connector.connect(user='root',password='Mvpg13_02',host='localhost',database='website')
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()
     sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
 Union
@@ -414,7 +414,6 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     allPrevRes+= "<input type='submit' name='submitSignup' id = 'cancel' value ='Cancel Reservation'>\n"
     allPrevRes+= "</form>\n</body>\n</html></p>"
     f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html","w")
-    #print(allPrevRes)
     if tot>0:
         f.write("<p>"+allPrevRes+"</p>")
         for i in range(100):
@@ -449,7 +448,7 @@ def modifyReservation():
                 j=i
                 break
         x = res[j:n-1]
-        con=mysql.connector.connect(user='root',password='Mvpg13_02',host='localhost',database='website')
+        con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
         cur=con.cursor()
         sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
     Union
@@ -500,10 +499,11 @@ def makechanges():
     endDate = output["endDate"]
     endDate = datetime.date(int(endDate[0:4]),int(endDate[5:7]),int(endDate[8:10]))
     roomType = output["roomType"]
+    if endDate<=startDate:
+        return render_template("modifyReservation.html", error = "Please select a valid date range")
 
 
-
-    con=mysql.connector.connect(user='root',password='Mvpg13_02',host='localhost',database='website')
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     sql = 'SELECT * from '+roomType
     cur=con.cursor()
     cur.execute(sql)
