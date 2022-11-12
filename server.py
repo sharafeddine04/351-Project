@@ -110,6 +110,8 @@ def login():
     emailFound = False
     for i in range(n):
         if result[i][0]==session["email"]:
+            session["firstName"] = result[i][1]
+            session["lastName"] = result[i][2]
             emailFound = True
             emailIndex = i
             break
@@ -296,7 +298,8 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
             allPrevRes=allPrevRes+"Double Suite:<br>"+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"
         else:
             allPrevRes=allPrevRes+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"     
-    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html","w")
+    # f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html","w")
+    f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\getPreviousReservations.html","w")
     if (len(allPrevRes)==0):
         f.write("<p>No Reservations have been made</p>")
         f.close()
@@ -411,19 +414,20 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
 
     allPrevRes += "</select>\n<input type='submit' name='submitSignup' id = 'modify' value ='modify'>\n"
     allPrevRes+= "<input type='submit' name='submitSignup' id = 'cancel' value ='Cancel Reservation'>\n"
+    allPrevRes += "<input type ='submit' name = 'submitSignup' id = 'getInvoice' value = 'Get Invoice'>\n"
     allPrevRes+= "</form>\n</body>\n</html></p>"
-    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html","w")
+    f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\currentReservation.html","w")
     #print(allPrevRes)
     if tot>0:
         f.write("<p>"+allPrevRes+"</p>")
         for i in range(100):
             ppp=i
         f.close()
-        f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html","r")
+        f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\currentReservation.html","r")
         content=f.read()
         f.close()
         print(content)        
-        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html")
+        return send_file("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\currentReservation.html")
     else:
         f.write("<p>No current reservations</p>")
         f.close()
@@ -438,6 +442,69 @@ def modifyReservation():
     session["modification"] = output["modifyroom"]
     if output["submitSignup"]=="modify":
         return render_template("modifyReservation.html")
+    elif output["submitSignup"] == "Get Invoice":
+        from reportlab.platypus import SimpleDocTemplate, Table, Paragraph, TableStyle, Spacer
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import getSampleStyleSheet
+        tableData = [["Check-In Date", "Check-Out Date", "Room Type", "Room Price"]]
+        con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+        cur=con.cursor()
+        sql = """
+        SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
+        Union
+        SELECT * FROM doubleroom WHERE email=\""""+session["email"]+"""\"
+        Union
+        SELECT * FROM suitefor1 WHERE email=\""""+session["email"]+"""\"
+        Union
+        SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
+        """
+        cur.execute(sql)
+        result = cur.fetchall()
+        n = len(result)
+        total_price = 0
+        for i in range(n):
+            if session["email"] == result[i][1]:
+                temp = {"doubleroom" : "Double Room" , "singleroom" : "Single Room" , "suitefor1": "Single Suite", "doublesuite": "Double Suite"}
+                tableData.append([str(result[i][2]) , str(result[i][3]) , temp[result[i][4]], str(1)])
+                total_price += 1
+        tableData.append(["Total" ,"" , "" , str(total_price)])
+        tableData.append(["Signature" , "" , "" , "__________"])
+        docu = SimpleDocTemplate("invoice.pdf", pagesize=A4)
+        styles = getSampleStyleSheet()
+        doc_style = styles["Heading1"]
+        doc_style.alignment = 1
+        title = Paragraph("ROOM RESERVATION INVOICE", doc_style)
+        style = TableStyle([
+                ("BOX", (0, 0), (-1, -1), 1, colors.black),
+                ("GRID", (0, 0), (4, 4), 1, colors.chocolate),
+                ("BACKGROUND", (0, 0), (3, 0), colors.skyblue),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+            ])
+        table = Table(tableData, style=style)
+        docu.build([title, Spacer(1,20), Paragraph("Dear " + session["firstName"] + " " + session["lastName"] + ", this is the invoice for your room reservation(s)"), Spacer(1,20), table])
+        em = EmailMessage()
+        context = ssl.create_default_context()
+        gmail_user = "hotelreservationeece351@gmail.com"
+        gmail_password = "fpdirumwuxzdzohj"
+        em["From"] = gmail_user
+        em["To"] = session["email"]
+        em["Subject"] = "Room Reservation Invoice"
+        text = "Dear " + session["firstName"] + " " + session["lastName"] + ",\n\nPlease find attached the invoice for your reservation(s)"
+        em.set_content(text)
+        with open("invoice.pdf","r") as invoice:
+            content = invoice.read()
+            em.add_attachment(content, subtype = "pdf", filename = "invoice.pdf")
+        try:
+            server = smtplib.SMTP_SSL('smtp.gmail.com',465, context = context)
+            server.login(gmail_user, gmail_password)
+            server.sendmail(gmail_user,session["email"],em.as_string())
+        except:
+            print ('Something went wrong...')
+        return render_template("currentReservation.html")
+
     else:
         res = output["modifyroom"]
         inte=['1','2','3','4','5','6','7','8','9','0']
@@ -454,13 +521,13 @@ def modifyReservation():
         con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
         cur=con.cursor()
         sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
-    Union
-    SELECT * FROM doubleroom WHERE email=\""""+session["email"]+"""\"
-    Union
-    SELECT * FROM suitefor1 WHERE email=\""""+session["email"]+"""\"
-    Union
-    SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
-    """
+        Union
+        SELECT * FROM doubleroom WHERE email=\""""+session["email"]+"""\"
+        Union
+        SELECT * FROM suitefor1 WHERE email=\""""+session["email"]+"""\"
+        Union
+        SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
+        """
         cur.execute(sql)
         result = cur.fetchall()
         n = len(result)
