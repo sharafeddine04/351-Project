@@ -3,7 +3,9 @@
 <body>
 
     <form method="POST" action = "/loadReservationPage"> 
-        <input type="submit" name="loadReservationPage" id = "loadReservationPage" value = "Reserve a Room"><br>
+        Start Date: <input type="date" name = "startDate" id = "startDate"> <br><br>
+        End Date: <input type="date" name = "endDate" id = "endDate" min = > <br><br>
+        <input type="submit" name="loadReservationPage" id = "loadReservationPage" value = "Check Available Rooms"><br>
     </form> 
 
     <form method="POST" action = "/getPreviousReservations"> 
@@ -17,4 +19,23 @@
 
 </body>
 {{error_statement}}
+<script>
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth() + 1; 
+    var yyyy = today.getFullYear();
+    
+    if (dd < 10) {
+       dd = '0' + dd;
+    }
+    
+    if (mm < 10) {
+       mm = '0' + mm;
+    } 
+        
+    today = yyyy + '-' + mm + '-' + dd;
+    document.getElementById("startDate").setAttribute("min", today);
+    document.getElementById("endDate").setAttribute("min",today)
+</script>
 </html>
+

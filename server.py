@@ -1,4 +1,3 @@
-import os
 import datetime
 import random
 from flask import Flask,render_template,request,session, send_file
@@ -16,7 +15,7 @@ password=""
 number = random.randint(100000,999999)
 capacity = {"singleroom":3, "doubleroom":4, "suitefor1":2, "doublesuite":2}
 room = {"singleroom":"Single Room", "doubleroom":"Double Room", "suitefor1":"Suite For 1", "doublesuite":"Double Suite"}
-
+pricePerRoom = {"singleroom":65, "doubleroom":120, "suitefor1":150, "doublesuite":250}
 
 @app.route('/')
 def mainPage():
@@ -203,45 +202,99 @@ def newPassword():
     
     return render_template("mainPage.html",changePassSuccess="Password Changed Successfully")   
 
-@app.route("/loadReservationPage",methods = ["GET","POST"])
-def loadReservation():
-    return render_template("reservationPage.html")   
-
-@app.route("/checkAvailableRooms",methods = ["GET","POST"])
-def reserve():
-    output=request.form.to_dict()
-    startDate = output["startDate"]
-    startDate = datetime.date(int(startDate[0:4]),int(startDate[5:7]),int(startDate[8:10]))
-    endDate = output["endDate"]
-    endDate = datetime.date(int(endDate[0:4]),int(endDate[5:7]),int(endDate[8:10]))
-    roomType = output["roomType"]
-    if endDate<=startDate:
-        return render_template("reservationPage.html", error = "Please select a valid date range")
-    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
-    sql = 'SELECT * from '+roomType
-    cur=con.cursor()
-    cur.execute(sql)
-    result = cur.fetchall()
-    max = len(result)+1
+def checkIfResAvailable(startDate,endDate,result,roomType):
     numberOfRoomsUsed = 0
     for i in range(len(result)):
-        if(result[i][0]==max):
-            max+=1
         start = result[i][2]
         end = result[i][3]
         if ((startDate<= end and startDate>=start) or (endDate<= end and endDate>=start) or (startDate<=start  and endDate>=end)):
             numberOfRoomsUsed+=1
     if (numberOfRoomsUsed < capacity[roomType]):
-        cur.execute("insert into "+roomType+" values(%s,%s,%s,%s,%s)",(max,session['email'],startDate,endDate,roomType))
+        return True
+    return False
+
+@app.route("/loadReservationPage",methods = ["GET","POST"])
+def loadReservation():
+    output=request.form.to_dict()
+    startDate = output["startDate"]
+    startDate = datetime.date(int(startDate[0:4]),int(startDate[5:7]),int(startDate[8:10]))
+    endDate = output["endDate"]
+    endDate = datetime.date(int(endDate[0:4]),int(endDate[5:7]),int(endDate[8:10]))
+    if endDate<startDate:
+        return render_template("profile.html",error_statement="Please select a valid date range")
+    session["startDate"]=startDate.strftime("%m/%d/%Y")
+    session["endDate"]=endDate.strftime("%m/%d/%Y")
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    typeOfAvailableRoom=[]
+    cur=con.cursor()
+    for key in room:
+        sql = "SELECT * FROM "+key
+        cur.execute(sql)
+        result = cur.fetchall()
+        if checkIfResAvailable(startDate, endDate, result, key):
+            typeOfAvailableRoom.append(key)
+    if len(typeOfAvailableRoom) == 0:
+        string = "There are no rooms available between "+str(startDate)+" and "+str(endDate)+"<br><form method = \"Post\" action=\"backToProfile\"> <input type=\"submit\" name=\"backToProfile\" id = \"backToProfile\" value = \"Press here to go back to your profile\"><br></form>"
+        f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
+        f.write("<html><p>"+string+"</p></html>")
+        f.close()
         con.commit()
         cur.close()
         con.close()
-        return render_template("reservationPage.html", error = "successful")
-    return render_template("reservationPage.html", error = "No "+ roomType +" available for reservation in selected date")
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
+    string = "The rooms available between "+str(startDate)+" and "+str(endDate)+" are:<br><form method = \"Post\" action=\"confirmationPage\">"
+    for i in range(len(typeOfAvailableRoom)):
+        string = string+'<input type="submit" name="'+typeOfAvailableRoom[i]+'" id = "'+typeOfAvailableRoom[i]+'" value = "'+room[typeOfAvailableRoom[i]]+'"><br><br>'
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
+    f.write("<html><p>"+string+"</form></p></html>")
+    f.close()
+    con.commit()
+    cur.close()
+    con.close()
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
+
+@app.route("/backToProfile",methods = ["GET","POST"])
+def profile():
+    return render_template("profile.html")
+
+@app.route("/confirmationPage",methods = ["GET","POST"])
+def confirm():
+    output=request.form.to_dict()
+    for k in output:
+        session["roomType"]=k
+    print(session["startDate"])
+    print(session["endDate"])
+    startDate = datetime.date(int(session["startDate"][6:11]), int(session["startDate"][0:2]), int(session["startDate"][3:5]))
+    endDate = datetime.date(int(session["endDate"][6:11]), int(session["endDate"][0:2]), int(session["endDate"][3:5]))
+    numOfDays = endDate-startDate
+    numOfDays = numOfDays.days
+    price = pricePerRoom[session["roomType"]]*numOfDays
+    string = "<h2>Confirm your Reservation</h2><br>Date: "+session["startDate"]+" to "+session["endDate"]+"<br> Room Type: "+room[session["roomType"]]+"<br>Total Price:"+str(price)+"$<br><form method = \"Post\" action=\"confirmReservation\"><input type=\"submit\" name=\"confirm\" id = \"confirm\" value = \"Confirm Reservation\"></form>"
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmation.html",'w')
+    f.write("<html><p>"+string+"</p></html>")
+    f.close()
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmation.html")   
+
+@app.route("/confirmReservation", methods=["GET","POST"])
+def confirmRes():
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    sql = 'SELECT * from '+session["roomType"]
+    cur=con.cursor()
+    cur.execute(sql)
+    result = cur.fetchall()
+    max = len(result)+1
+    session["startDate"] = datetime.date(int(session["startDate"][6:11]), int(session["startDate"][0:2]), int(session["startDate"][3:5]))
+    session["endDate"] = datetime.date(int(session["endDate"][6:11]), int(session["endDate"][0:2]), int(session["endDate"][3:5]))
+    print(session["roomType"])
+    cur.execute("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
+    print("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
+    con.commit()
+    cur.close()
+    con.close()
+    return render_template("profile.html",error_statement = "Reservation made successfully")
 
 @app.route("/getPreviousReservations",methods = ["GET","POST"])
 def previousReservaions():
-    prevRes = []
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()
     sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
@@ -298,16 +351,16 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
             allPrevRes=allPrevRes+"Double Suite:<br>"+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"
         else:
             allPrevRes=allPrevRes+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"     
-    # f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html","w")
-    f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\getPreviousReservations.html","w")
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html","w")
+    #f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\getPreviousReservations.html","w")
     if (len(allPrevRes)==0):
         f.write("<p>No Reservations have been made</p>")
         f.close()
-        return render_template("getPreviousReservations.html")
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html")
     
     f.write("<p>"+allPrevRes+"</p>")
     f.close()
-    return render_template("getPreviousReservations.html")
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html")
 
 @app.route("/getCurrentReservations",methods = ["GET","POST"])
 def currentReservaions():
@@ -416,25 +469,19 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     allPrevRes+= "<input type='submit' name='submitSignup' id = 'cancel' value ='Cancel Reservation'>\n"
     allPrevRes += "<input type ='submit' name = 'submitSignup' id = 'getInvoice' value = 'Get Invoice'>\n"
     allPrevRes+= "</form>\n</body>\n</html></p>"
-    f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\currentReservation.html","w")
+    #f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\currentReservation.html","w")
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html","w")
     #print(allPrevRes)
     if tot>0:
         f.write("<p>"+allPrevRes+"</p>")
         for i in range(100):
             ppp=i
-        f.close()
-        f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\currentReservation.html","r")
-        content=f.read()
-        f.close()
-        print(content)        
-        return send_file("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\currentReservation.html")
+        f.close()      
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html")
     else:
         f.write("<p>No current reservations</p>")
         f.close()
-        return render_template("currentReservation.html")
-
-    
-
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html")
 
 @app.route("/modifyReservation",methods = ["GET","POST"])
 def modifyReservation():
