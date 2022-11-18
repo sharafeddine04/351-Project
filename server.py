@@ -243,8 +243,10 @@ def loadReservation():
         con.close()
         return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
     string = "The rooms available between "+str(startDate)+" and "+str(endDate)+" are:<br><form method = \"Post\" action=\"confirmationPage\">"
+    diffDate = (endDate-startDate).days
     for i in range(len(typeOfAvailableRoom)):
-        string = string+'<input type="submit" name="'+typeOfAvailableRoom[i]+'" id = "'+typeOfAvailableRoom[i]+'" value = "'+room[typeOfAvailableRoom[i]]+'"><br><br>'
+        price = pricePerRoom[typeOfAvailableRoom[i]]*diffDate
+        string = string+'<input type="submit" name="'+typeOfAvailableRoom[i]+'" id = "'+typeOfAvailableRoom[i]+'" value = "'+room[typeOfAvailableRoom[i]]+'">Price:'+str(price)+'$ <br><br>'
     f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
     f.write("<html><p>"+string+"</form></p></html>")
     f.close()
@@ -269,6 +271,7 @@ def confirm():
     numOfDays = endDate-startDate
     numOfDays = numOfDays.days
     price = pricePerRoom[session["roomType"]]*numOfDays
+    session["price"]=price
     string = "<h2>Confirm your Reservation</h2><br>Date: "+session["startDate"]+" to "+session["endDate"]+"<br> Room Type: "+room[session["roomType"]]+"<br>Total Price:"+str(price)+"$<br><form method = \"Post\" action=\"confirmReservation\"><input type=\"submit\" name=\"confirm\" id = \"confirm\" value = \"Confirm Reservation\"></form>"
     f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmation.html",'w')
     f.write("<html><p>"+string+"</p></html>")
@@ -418,7 +421,7 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
         x+= str(singleroom[i][0])+" to "+str(singleroom[i][1])
         z="singleroom"
         z+=str(id1[i])
-        allPrevRes += "<option value=" +str(z)+ "'>'" +x+"</option>\n"
+        allPrevRes += "<option value='" +str(z)+ "'>" +x+"</option>\n"
     if n>0:
         allPrevRes+="</optgroup>"
     
@@ -432,7 +435,7 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
         x+= str(doubleroom[i][0])+" to "+str(doubleroom[i][1])
         z="doubleroom"
         z+=str(id2[i])
-        allPrevRes += "<option value=" +str(z)+ "'>'" +x+"</option>\n"
+        allPrevRes += "<option value='" +str(z)+ "'>" +x+"</option>\n"
     if n>0:
         allPrevRes+="</optgroup>"
 
@@ -444,9 +447,9 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     for i in range(n):
         x= ""
         x+= str(suitfor1[i][0])+" to "+str(suitfor1[i][1])
-        z="suiteforOne"
+        z="suitefor1"
         z+=str(id3[i])
-        allPrevRes += "<option value=" +str(z)+ "'>'" +x+"</option>\n"
+        allPrevRes += "<option value='" +str(z)+ "'>" +x+"</option>\n"
     if n>0:
         allPrevRes+="</optgroup>"
     
@@ -460,7 +463,7 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
         x+= str(doublesuit[i][0])+" to "+str(doublesuit[i][1])
         z="doublesuite"
         z+=str(id4[i])
-        allPrevRes += "<option value=" +str(z)+ "'>'" +x+"</option>\n"
+        allPrevRes += "<option value='" +str(z)+ "'>" +x+"</option>\n"
     if n>0:
         allPrevRes+="</optgroup>"
 
@@ -554,6 +557,7 @@ def modifyReservation():
 
     else:
         res = output["modifyroom"]
+        print(res)
         inte=['1','2','3','4','5','6','7','8','9','0']
         n = len(res)
         j=0
@@ -591,13 +595,13 @@ def modifyReservation():
         else:
             cur.execute("DELETE FROM suitefor1 where id=\""""+x+"""\"""")
             con.commit()
-
-        return render_template("profile.html")
+        return render_template("profile.html",error_statement = "Your previous reservation of a "+room[str(t)]+" has been deleted")
 
 
 @app.route("/makeModification", methods=["GET","POST"])
 def makechanges():
     res = session["modification"]
+    print(res)
     inte=['1','2','3','4','5','6','7','8','9','0']
     n = len(res)
     j=0
@@ -616,7 +620,9 @@ def makechanges():
     endDate = output["endDate"]
     endDate = datetime.date(int(endDate[0:4]),int(endDate[5:7]),int(endDate[8:10]))
     roomType = output["roomType"]
-
+    session["startDateNew"]=startDate.strftime("%m/%d/%Y")
+    session["startDateNew"]=endDate.strftime("%m/%d/%Y")
+    session["roomTypeNew"]=roomType
 
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()
@@ -653,17 +659,7 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
             y+=1
     cur.execute("insert into "+roomType+" values(%s,%s,%s,%s,%s)",(str(y),session['email'],startDate,endDate,roomType))
     con.commit()
-        
-
-
-
     return render_template("profile.html")
-
-
-@app.route("/cancelReservation", methods=["GET","POST"])
-def deleteRes():
-    output = request.form.to_dict()
-    
 
 if __name__=='__main__':
     app.run(port = 80)
