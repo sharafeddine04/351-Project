@@ -286,6 +286,13 @@ def confirmRes():
     cur.execute(sql)
     result = cur.fetchall()
     max = len(result)+1
+    cur.execute('SELECT * from '+session["roomType"])
+    result1 = cur.fetchall()
+    y=int(max)
+    for i in range(len(result1)):
+        if(result1[i][0]==y):
+            y+=1
+    max=y
     session["startDate"] = datetime.date(int(session["startDate"][6:11]), int(session["startDate"][0:2]), int(session["startDate"][3:5]))
     session["endDate"] = datetime.date(int(session["endDate"][6:11]), int(session["endDate"][0:2]), int(session["endDate"][3:5]))
     print(session["roomType"])
@@ -394,7 +401,7 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
         startDate = result[i][2]
         endDate = result[i][3]
         roomType = result[i][4]
-        if today<startDate:
+        if today<=startDate:
             if roomType == "singleroom" :
                 singleroom.append((startDate,endDate))
                 id1.append(result[i][0])
@@ -417,11 +424,11 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
         allPrevRes +=u
     for i in range(n):
         
-        x= ""
-        x+= str(singleroom[i][0])+" to "+str(singleroom[i][1])
+        ma= ""
+        ma+= str(singleroom[i][0])+" to "+str(singleroom[i][1])
         z="singleroom"
         z+=str(id1[i])
-        allPrevRes += "<option value='" +str(z)+ "'>" +x+"</option>\n"
+        allPrevRes += "<option value='" +str(z)+ "'>" +ma+"</option>\n"
     if n>0:
         allPrevRes+="</optgroup>"
     
@@ -431,11 +438,11 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     if n>0:
         allPrevRes +=u
     for i in range(n):
-        x= ""
-        x+= str(doubleroom[i][0])+" to "+str(doubleroom[i][1])
+        ma= ""
+        ma+= str(doubleroom[i][0])+" to "+str(doubleroom[i][1])
         z="doubleroom"
         z+=str(id2[i])
-        allPrevRes += "<option value='" +str(z)+ "'>" +x+"</option>\n"
+        allPrevRes += "<option value='" +str(z)+ "'>" +ma+"</option>\n"
     if n>0:
         allPrevRes+="</optgroup>"
 
@@ -445,11 +452,11 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     if n>0:
         allPrevRes +=u
     for i in range(n):
-        x= ""
-        x+= str(suitfor1[i][0])+" to "+str(suitfor1[i][1])
+        ma= ""
+        ma+= str(suitfor1[i][0])+" to "+str(suitfor1[i][1])
         z="suitefor1"
         z+=str(id3[i])
-        allPrevRes += "<option value='" +str(z)+ "'>" +x+"</option>\n"
+        allPrevRes += "<option value='" +str(z)+ "'>" +ma+"</option>\n"
     if n>0:
         allPrevRes+="</optgroup>"
     
@@ -459,11 +466,11 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     if n>0:
         allPrevRes +=u
     for i in range(n):
-        x= ""
-        x+= str(doublesuit[i][0])+" to "+str(doublesuit[i][1])
+        ma= ""
+        ma+= str(doublesuit[i][0])+" to "+str(doublesuit[i][1])
         z="doublesuite"
         z+=str(id4[i])
-        allPrevRes += "<option value='" +str(z)+ "'>" +x+"</option>\n"
+        allPrevRes += "<option value='" +str(z)+ "'>" +ma+"</option>\n"
     if n>0:
         allPrevRes+="</optgroup>"
 
@@ -490,6 +497,7 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
 def modifyReservation():
     output = request.form.to_dict()
     session["modification"] = output["modifyroom"]
+    print(session["modification"])
     if output["submitSignup"]=="modify":
         return render_template("modifyReservation.html")
     elif output["submitSignup"] == "Get Invoice":
@@ -514,10 +522,13 @@ def modifyReservation():
         n = len(result)
         total_price = 0
         for i in range(n):
-            if session["email"] == result[i][1]:
-                temp = {"doubleroom" : "Double Room" , "singleroom" : "Single Room" , "suitefor1": "Single Suite", "doublesuite": "Double Suite"}
-                tableData.append([str(result[i][2]) , str(result[i][3]) , temp[result[i][4]], str(1)])
-                total_price += 1
+            temp = {"doubleroom" : "Double Room" , "singleroom" : "Single Room" , "suitefor1": "Single Suite", "doublesuite": "Double Suite"}
+            start = result[i][2]
+            end = result[i][3]
+            diff = (end-start).days
+            price = diff*pricePerRoom[result[i][4]]
+            tableData.append([str(result[i][2]) , str(result[i][3]) , temp[result[i][4]], str(price)])
+            total_price += price
         tableData.append(["Total" ,"" , "" , str(total_price)])
         tableData.append(["Signature" , "" , "" , "__________"])
         docu = SimpleDocTemplate("invoice.pdf", pagesize=A4)
@@ -568,7 +579,7 @@ def modifyReservation():
             else:
                 j=i
                 break
-        x = res[j:n-1]
+        ma = res[j:n-1]
         con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
         cur=con.cursor()
         sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
@@ -584,24 +595,47 @@ def modifyReservation():
         n = len(result)
 
         if t=="singleroom":
-            cur.execute("DELETE FROM singleroom where id=\""""+x+"""\"""")
+            cur.execute("DELETE FROM singleroom where id=\""""+ma+"""\"""")
             con.commit()
         elif t=="doubleroom":
-            cur.execute("DELETE FROM doubleroom where id=\""""+x+"""\"""")
+            cur.execute("DELETE FROM doubleroom where id=\""""+ma+"""\"""")
             con.commit()
         elif t =="doublesuite":
-            cur.execute("DELETE FROM doublesuite where id=\""""+x+"""\"""")
+            cur.execute("DELETE FROM doublesuite where id=\""""+ma+"""\"""")
             con.commit()
         else:
-            cur.execute("DELETE FROM suitefor1 where id=\""""+x+"""\"""")
+            cur.execute("DELETE FROM suitefor1 where id=\""""+ma+"""\"""")
             con.commit()
         return render_template("profile.html",error_statement = "Your previous reservation of a "+room[str(t)]+" has been deleted")
 
+def checkIfResAvailableNew(startDate,endDate,startOld,endOld,result,roomType):
+    numberOfRoomsUsed = 0
+    for i in range(len(result)):
+        start = result[i][2]
+        end = result[i][3]
+        if ((startDate<= end and startDate>=start) or (endDate<= end and endDate>=start) or (startDate<=start  and endDate>=end)):
+            numberOfRoomsUsed+=1
+    if ((startOld<= endDate and startOld>=startDate) or (endOld<= endDate and endOld>=startDate) or (startOld<=startDate  and endOld>=endDate)):
+        numberOfRoomsUsed-=1
+    if (numberOfRoomsUsed < capacity[roomType]):
+        return True
+    return False
 
 @app.route("/makeModification", methods=["GET","POST"])
-def makechanges():
+def provideNewDate():
+    output = request.form.to_dict()
+    startDate = output["startDate"]
+    startDate = datetime.date(int(startDate[0:4]),int(startDate[5:7]),int(startDate[8:10]))
+    endDate = output["endDate"]
+    endDate = datetime.date(int(endDate[0:4]),int(endDate[5:7]),int(endDate[8:10]))
+    if endDate<startDate:
+        return render_template("modifyReservation.html",error="Please select a valid date range")
+    session["newStartDate"]=startDate.strftime("%m/%d/%Y")
+    session["newEndDate"]=endDate.strftime("%m/%d/%Y")
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    typeOfAvailableRoom=[]
+    cur=con.cursor()
     res = session["modification"]
-    print(res)
     inte=['1','2','3','4','5','6','7','8','9','0']
     n = len(res)
     j=0
@@ -612,54 +646,105 @@ def makechanges():
         else:
             j=i
             break
-    x = res[j:n-1]
-    
-    output = request.form.to_dict()
-    startDate = output["startDate"]
-    startDate = datetime.date(int(startDate[0:4]),int(startDate[5:7]),int(startDate[8:10]))
-    endDate = output["endDate"]
-    endDate = datetime.date(int(endDate[0:4]),int(endDate[5:7]),int(endDate[8:10]))
-    roomType = output["roomType"]
-    session["startDateNew"]=startDate.strftime("%m/%d/%Y")
-    session["startDateNew"]=endDate.strftime("%m/%d/%Y")
-    session["roomTypeNew"]=roomType
+    ma = res[j:n]
+    if res[0]=='s' and res[1]=='u':
+        t="suitefor1"
+        ma=res[len(t):n]
+    sql = "SELECT * FROM "+t+" where id = "+ma
+    cur.execute(sql)
+    oldRes = cur.fetchall()
+    oldRedervationStartDate = oldRes[0][2]
+    oldRedervationEndDate = oldRes[0][3]
+    for key in room:
+        sql = "SELECT * FROM "+key
+        cur.execute(sql)
+        result = cur.fetchall()
+        if key != t and checkIfResAvailable(startDate, endDate, result, key) :
+            typeOfAvailableRoom.append(key)
+        if key == t and checkIfResAvailableNew(startDate, endDate, oldRedervationStartDate, oldRedervationEndDate, result, key):
+            typeOfAvailableRoom.append(key)
+    if len(typeOfAvailableRoom) == 0:
+        string = "There are no rooms available between "+str(startDate)+" and "+str(endDate)+"<br><form method = \"Post\" action=\"backToProfile\"> <input type=\"submit\" name=\"backToProfile\" id = \"backToProfile\" value = \"Press here to go back to your profile\"><br></form>"
+        f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
+        f.write("<html><p>"+string+"</p></html>")
+        f.close()
+        con.commit()
+        cur.close()
+        con.close()
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
+    string = "The rooms available between "+str(startDate)+" and "+str(endDate)+" are:<br><form method = \"Post\" action=\"confirmationPageModified\">"
+    diffDate = (endDate-startDate).days
+    for i in range(len(typeOfAvailableRoom)):
+        price = pricePerRoom[typeOfAvailableRoom[i]]*diffDate
+        string = string+'<input type="submit" name="'+typeOfAvailableRoom[i]+'" id = "'+typeOfAvailableRoom[i]+'" value = "'+room[typeOfAvailableRoom[i]]+'">Price:'+str(price)+'$ <br><br>'
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
+    f.write("<html><p>"+string+"</form></p></html>")
+    f.close()
+    con.commit()
+    cur.close()
+    con.close()
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
 
+@app.route("/confirmationPageModified",methods = ["GET","POST"])
+def confirmModification():
+    output=request.form.to_dict()
+    for k in output:
+        session["roomType"]=k
+    print(session["startDate"])
+    print(session["endDate"])
+    startDate = datetime.date(int(session["newStartDate"][6:11]), int(session["newStartDate"][0:2]), int(session["newStartDate"][3:5]))
+    endDate = datetime.date(int(session["newEndDate"][6:11]), int(session["newEndDate"][0:2]), int(session["newEndDate"][3:5]))
+    numOfDays = endDate-startDate
+    numOfDays = numOfDays.days
+    price = pricePerRoom[session["roomType"]]*numOfDays
+    session["newPrice"]=price
+    string = "<h2>Confirm your Reservation</h2><br>Date: "+session["newStartDate"]+" to "+session["newEndDate"]+"<br> Room Type: "+room[session["roomType"]]+"<br>Total Price:"+str(price)+"$<br><form method = \"Post\" action=\"confirmModifyingReservation\"><input type=\"submit\" name=\"confirm\" id = \"confirm\" value = \"Confirm Reservation\"></form>"
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmationModifying.html",'w')
+    f.write("<html><p>"+string+"</p></html>")
+    f.close()
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmationModifying.html")   
+
+@app.route("/confirmModifyingReservation", methods=["GET","POST"])
+def confirmModifyingRes():
+    res = session["modification"]
+    inte=['1','2','3','4','5','6','7','8','9','0']
+    n = len(res)
+    j=0
+    t=""
+    for i in range(n):
+        if res[i] not in inte:
+            t+=res[i]
+        else:
+            j=i
+            break
+    ma = res[j:n]
+    if res[0]=='s' and res[1]=='u':
+        t="suitefor1"
+        ma=res[len(t):n]
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()
-    sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
-Union
-SELECT * FROM doubleroom WHERE email=\""""+session["email"]+"""\"
-Union
-SELECT * FROM suitefor1 WHERE email=\""""+session["email"]+"""\"
-Union
-SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
-"""
+    cur.execute("DELETE FROM "+t+" where id=\""""+ma+"""\"""")
+    con.commit()
+    sql = 'SELECT * from '+session["roomType"]
     cur.execute(sql)
     result = cur.fetchall()
-    n = len(result)
-
-    if t=="singleroom":
-        cur.execute("DELETE FROM singleroom where id=\""""+x+"""\"""")
-        con.commit()
-    elif t=="doubleroom":
-        cur.execute("DELETE FROM doubleroom where id=\""""+x+"""\"""")
-        con.commit()
-    elif t =="doublesuite":
-        cur.execute("DELETE FROM doublesuite where id=\""""+x+"""\"""")
-        con.commit()
-    else:
-        cur.execute("DELETE FROM suitefor1 where id=\""""+x+"""\"""")
-        con.commit()
-    
-    cur.execute('SELECT * from '+roomType)
+    max = len(result)+1
+    cur.execute('SELECT * from '+session["roomType"])
     result1 = cur.fetchall()
-    y=int(x)
+    y=int(max)
     for i in range(len(result1)):
         if(result1[i][0]==y):
             y+=1
-    cur.execute("insert into "+roomType+" values(%s,%s,%s,%s,%s)",(str(y),session['email'],startDate,endDate,roomType))
+    max=y
+    session["startDate"] = datetime.date(int(session["newStartDate"][6:11]), int(session["newStartDate"][0:2]), int(session["newStartDate"][3:5]))
+    session["endDate"] = datetime.date(int(session["newEndDate"][6:11]), int(session["newEndDate"][0:2]), int(session["newEndDate"][3:5]))
+    print(session["roomType"])
+    cur.execute("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
+    print("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
     con.commit()
-    return render_template("profile.html")
+    cur.close()
+    con.close()
+    return render_template("profile.html",error_statement = "Reservation modified successfully")
 
 if __name__=='__main__':
     app.run(port = 80)
