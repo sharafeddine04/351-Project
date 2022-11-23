@@ -32,20 +32,20 @@ def loadLogin():
 @app.route('/signupVerification',methods=["POST"])
 def signup():
     output=request.form.to_dict()
-    session["name"]=output['fName']
-    session["lastname"]=output['lName']
+    session["firstName"]=output['fName']
+    session["lastName"]=output['lName']
     session["email"]=output['email']
     session["password"]=output['password']
     confirmPass = output['confirmPassword']
     if "HumanVerification" not in output:
         error = "Verify that you are not a robot"
-        return render_template("signupPage.html",error_statement=error,fName = session["name"], lName = session["lastname"], email = session["email"])    
-    if session["name"] == "" or session["lastname"] == "" or session["email"] == "" or session["password"] == "":
+        return render_template("signupPage.html",error_statement=error,fName = session["firstName"], lName = session["lastName"], email = session["email"])    
+    if session["firstName"] == "" or session["lastName"] == "" or session["email"] == "" or session["password"] == "":
         error = "None of the fields above can be empty"
-        return render_template("signupPage.html",error_statement=error, fName = session["name"], lName = session["lastname"], email = session["email"])
+        return render_template("signupPage.html",error_statement=error, fName = session["firstName"], lName = session["lastName"], email = session["email"])
     if confirmPass!=session["password"]:
         error = "Password is not the same as confirmed password"
-        return render_template("signupPage.html",error_statement=error, fName = session["name"], lName = session["lastname"], email = session["email"])
+        return render_template("signupPage.html",error_statement=error, fName = session["firstName"], lName = session["lastName"], email = session["email"])
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()   
     sql = 'SELECT * from user'
@@ -86,7 +86,7 @@ def verifySignup():
     if str(number) == new_code:
         con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
         cur=con.cursor()
-        cur.execute("insert into user values(%s,%s,%s,%s)",(session['email'],session["name"],session['lastname'],session["password"]))
+        cur.execute("insert into user values(%s,%s,%s,%s)",(session['email'],session["firstName"],session['lastName'],session["password"]))
         con.commit()
         cur.close()
         con.close()
@@ -545,6 +545,7 @@ def modifyReservation():
                 ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
             ])
         table = Table(tableData, style=style)
+        cur.execute(sql)
         docu.build([title, Spacer(1,20), Paragraph("Dear " + session["firstName"] + " " + session["lastName"] + ", this is the invoice for your room reservation(s)"), Spacer(1,20), table])
         em = EmailMessage()
         context = ssl.create_default_context()
@@ -579,7 +580,7 @@ def modifyReservation():
             else:
                 j=i
                 break
-        ma = res[j:n-1]
+        ma = res[j:n]
         con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
         cur=con.cursor()
         sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
