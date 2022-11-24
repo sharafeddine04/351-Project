@@ -1,0 +1,21 @@
+<html>
+    <form method='POST' action = '/modifyRoomsCapacity'> 
+        <label for='modifyRoomsCapacity'>Pick a room type:</label>
+            <select name='modifyRoomsCapacity'>
+                <option value='singleroom'>Single Room</option>
+                <option value='doubleroom'>Double Room</option>
+                <option value='suitefor1'>Suite for One</option>
+                <option value='doublesuite'>Double Suite</option>
+            </select>
+        <br>
+        Enter number of rooms to be increased/decreased: <input type="number" name="numberOfRooms" id="numberOfRooms" >
+        <br>
+        <br>
+        <input type='submit' name='submit' id = 'increaseRooms' value ='Increase Rooms'>
+        <br>
+        <br>
+        <input type='submit' name='submit' id = 'decreaseRooms' value ='Decrease Rooms'>
+        <br>
+        {{update}}
+    </form>
+</html>

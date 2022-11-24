@@ -6,6 +6,7 @@ import smtplib
 from email.message import EmailMessage
 import ssl
 
+
 app = Flask(__name__)
 app.secret_key = 'osj'
 name = ""
@@ -13,12 +14,24 @@ lastname = ""
 email=""
 password=""
 number = random.randint(100000,999999)
-capacity = {"singleroom":3, "doubleroom":4, "suitefor1":2, "doublesuite":2}
+capacity = {}
 room = {"singleroom":"Single Room", "doubleroom":"Double Room", "suitefor1":"Suite For 1", "doublesuite":"Double Suite"}
-pricePerRoom = {"singleroom":65, "doubleroom":120, "suitefor1":150, "doublesuite":250}
+adminUsername = "admin"
+adminsPass = "admin"
+pricePerRoom = {}
 
 @app.route('/')
 def mainPage():
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    sql = '''SELECT * from roomsavailable'''
+    cur=con.cursor()   
+    cur.execute(sql)
+    result = cur.fetchall()
+    print(result)
+    n = len(result)
+    for i in range(n):
+        capacity[result[i][0]] = result[i][1]
+        pricePerRoom[result[i][0]] = result[i][2]
     return render_template("mainPage.html")
 
 @app.route('/goToSignup', methods=["GET"])
@@ -100,6 +113,10 @@ def login():
     output=request.form.to_dict()
     session["email"]=output['email']
     session["password"]=output['password']
+    if session["email"]==adminUsername and session["password"]==adminsPass:
+        return render_template("adminsPage.html")
+    elif session["email"]==adminUsername and not(session["password"]==adminsPass):
+        return render_template("login.html",error_statement="Incorrect admin password", email = session['email'])
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     sql = '''SELECT * from user'''
     cur=con.cursor()   
@@ -418,7 +435,7 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     allPrevRes=""
     n=len(singleroom)
     tot +=n
-    allPrevRes="<html>\n <body>\n <form method='POST' action = '/modifyReservation'> \n<label for='modifyrooms'>Pick a reservation:</label>\n <select name='modifyroom' id='cars'>\n"
+    allPrevRes="<html>\n <body>\n <form method='POST' action = '/modifyReservation'> \n<label for='modifyrooms'>Pick a reservation:</label>\n <select name='modifyroom' id='reservations'>\n"
     u =  "<optgroup label='single rooms'>\n"
     if n>0:
         allPrevRes +=u
@@ -746,6 +763,34 @@ def confirmModifyingRes():
     cur.close()
     con.close()
     return render_template("profile.html",error_statement = "Reservation modified successfully")
+
+@app.route("/modifyNumberRooms", methods=["GET","POST"])
+def loadModifyRoomNumbers():
+    return render_template("modifyAvailableRooms.html")
+
+@app.route("/modifyRoomsCapacity", methods=["GET","POST"])
+def modifyRoomNubers():
+    output = request.form.to_dict()
+    roomType = output["modifyRoomsCapacity"]
+    action = output["submit"]
+    if (action == "Increase Rooms"):
+        l = "increased"
+        roomCap = int(output["numberOfRooms"])
+    elif (action == "Decrease Rooms"):
+        l = "decreased"
+        roomCap = -int(output["numberOfRooms"])
+        if capacity[roomType]<-roomCap:
+            return render_template("modifyAvailableRooms.html", update = "Number of rooms to be decreased is greater than  number of available rooms")
+    capacity[roomType] += roomCap
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    cur=con.cursor()
+    print("DELETE FROM roomsavailable where ('roomName' =\""""+roomType+"""\")""")
+    cur.execute(cur.execute("UPDATE roomsavailable SET numOfRooms = %s WHERE roomName=%s",(capacity[roomType],roomType)))
+    con.commit()
+    update = str(capacity[roomType])+" from "+room[roomType]+" are now available"
+    return render_template("adminsPage.html", update = update)
+    
+
 
 if __name__=='__main__':
     app.run(port = 80)
