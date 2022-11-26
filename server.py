@@ -20,6 +20,7 @@ adminUsername = "admin"
 adminsPass = "admin"
 pricePerRoom = {}
 
+#Sets the capacities and prices based on the values set in mysql table called roomsavailabe
 @app.route('/')
 def mainPage():
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
@@ -34,14 +35,19 @@ def mainPage():
         pricePerRoom[result[i][0]] = result[i][2]
     return render_template("mainPage.html")
 
+#Opens the signup page if signup was clicked.
 @app.route('/goToSignup', methods=["GET"])
 def loadSignup():
     return render_template("signupPage.html")
 
+#Opens the login page if login was clicked
 @app.route('/goToLogin', methods=["GET"])
 def loadLogin():
     return render_template("login.html")
 
+#Verifies the signup by making sure all the entries have been filled. Also checks if password = confirm password and that humanverification
+#is checked. If not it reopens the same page and prevents him from proceeding. It then sends the user a verification code to the email he just
+#entered using SMTP.
 @app.route('/signupVerification',methods=["POST"])
 def signup():
     output=request.form.to_dict()
@@ -92,6 +98,8 @@ def signup():
         print ('Something went wrong...')
     return render_template("signupVerification.html")
 
+#Checks if the code entered is equal to the randomly generated 6 digit integer that was previously sent to his email. If it is, this saves
+#his info in the sql table called user.
 @app.route('/verifySignup',methods=["GET","POST"])     
 def verifySignup():
     output=request.form.to_dict()
@@ -108,10 +116,12 @@ def verifySignup():
         return render_template("signupVerification.html",error = "Verification Code is not same as entered code")
 
 
+#This is the login function. Takes in email and password and checks that email already exists in the user table in mysql and that the password
+#matches the specific email entry. Displays error message if either is wrong.
 @app.route('/login',methods=["POST","GET"])
 def login():
     output=request.form.to_dict()
-    session["email"]=output['email']
+    session["email"]=output['email'] #session is to keep track of who the current user. Saves for future functionalities aswell.
     session["password"]=output['password']
     if session["email"]==adminUsername and session["password"]==adminsPass:
         return render_template("adminsPage.html")
@@ -143,6 +153,7 @@ def login():
     error = "Incorrect Password" if emailFound else "Email Not Found"
     return render_template("login.html",error_statement=error, email = session['email'])   
 
+#Opens verificationCode page if reset password was pressed
 @app.route("/resetPassword", methods= ["GET","POST"])
 def loadVerification():
     return render_template("verificationCode.html")
@@ -150,6 +161,8 @@ def loadVerification():
 
 verification_email = ""
 
+
+#Sends randomly generated number to his email (using SMTP) to be used for verification before changing password.
 @app.route("/sendVerification",methods = ["GET","POST"])
 def sendVerification():
     output = request.form.to_dict()
@@ -165,7 +178,7 @@ def sendVerification():
     result = cur.fetchall()
     n = len(result)
     emailFound = False
-    for i in range(n):
+    for i in range(n): # Makes sure an account already exists
         if result[i][0]==verification_email:
             emailFound = True
             break
@@ -193,6 +206,7 @@ def sendVerification():
 
 number = random.randint(100000,999999)
 
+#Takes in user entered code and checks if its equal to one sent to his email. It then redirects him to go change password.
 @app.route('/verificationCode',methods=["GET","POST"])     
 def resetPassword():
     output=request.form.to_dict()
@@ -202,6 +216,7 @@ def resetPassword():
     else:
         return render_template("verificationCode.html",error = "Verification Code is nt same as entered code", email = session["verification_email"])
 
+#Takes in new password, checks its equal to confirm password then updates his password in the database.
 @app.route("/changePassword",methods = ["GET","POST"])
 def newPassword():
     output=request.form.to_dict()
@@ -219,6 +234,8 @@ def newPassword():
     
     return render_template("mainPage.html",changePassSuccess="Password Changed Successfully")   
 
+#Helper function which checks if there is an available room for the specified roomtype by counting how many rooms have been reserved
+#that intersect with the specified date and comparing that to number of rooms available (capacity).
 def checkIfResAvailable(startDate,endDate,result,roomType):
     numberOfRoomsUsed = 0
     for i in range(len(result)):
@@ -230,6 +247,8 @@ def checkIfResAvailable(startDate,endDate,result,roomType):
         return True
     return False
 
+#Takes in a specific date entered by the user. Returns to him a list of the available rooms based on if the capacity of these roomtypes
+#has been reached. Takes him to a new page that lists types of available rooms in the interval he has entered.
 @app.route("/loadReservationPage",methods = ["GET","POST"])
 def loadReservation():
     output=request.form.to_dict()
@@ -252,37 +271,40 @@ def loadReservation():
             typeOfAvailableRoom.append(key)
     if len(typeOfAvailableRoom) == 0:
         string = "There are no rooms available between "+str(startDate)+" and "+str(endDate)+"<br><form method = \"Post\" action=\"backToProfile\"> <input type=\"submit\" name=\"backToProfile\" id = \"backToProfile\" value = \"Press here to go back to your profile\"><br></form>"
-        f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
+        f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
         f.write("<html><p>"+string+"</p></html>")
         f.close()
         con.commit()
         cur.close()
         con.close()
-        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
+        return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
     string = "The rooms available between "+str(startDate)+" and "+str(endDate)+" are:<br><form method = \"Post\" action=\"confirmationPage\">"
     diffDate = (endDate-startDate).days
     for i in range(len(typeOfAvailableRoom)):
         price = pricePerRoom[typeOfAvailableRoom[i]]*diffDate
         string = string+'<input type="submit" name="'+typeOfAvailableRoom[i]+'" id = "'+typeOfAvailableRoom[i]+'" value = "'+room[typeOfAvailableRoom[i]]+'">Price:'+str(price)+'$ <br><br>'
-    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
+    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
     f.write("<html><p>"+string+"</form></p></html>")
     f.close()
     con.commit()
     cur.close()
     con.close()
-    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
+    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+
 
 @app.route("/backToProfile",methods = ["GET","POST"])
 def profile():
     return render_template("profile.html")
 
+#Takes in the type of room the user wants from the types of rooms listed to him before. Then calculates price of his stay based on roomtype
+#and number of days. It then takes him to a confirm reservation page.
 @app.route("/confirmationPage",methods = ["GET","POST"])
 def confirm():
     output=request.form.to_dict()
     for k in output:
         session["roomType"]=k
-    print(session["startDate"])
-    print(session["endDate"])
+    #print(session["startDate"])
+    #print(session["endDate"])
     startDate = datetime.date(int(session["startDate"][6:11]), int(session["startDate"][0:2]), int(session["startDate"][3:5]))
     endDate = datetime.date(int(session["endDate"][6:11]), int(session["endDate"][0:2]), int(session["endDate"][3:5]))
     numOfDays = endDate-startDate
@@ -290,11 +312,12 @@ def confirm():
     price = pricePerRoom[session["roomType"]]*numOfDays
     session["price"]=price
     string = "<h2>Confirm your Reservation</h2><br>Date: "+session["startDate"]+" to "+session["endDate"]+"<br> Room Type: "+room[session["roomType"]]+"<br>Total Price:"+str(price)+"$<br><form method = \"Post\" action=\"confirmReservation\"><input type=\"submit\" name=\"confirm\" id = \"confirm\" value = \"Confirm Reservation\"></form>"
-    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmation.html",'w')
+    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\confirmation.html",'w')
     f.write("<html><p>"+string+"</p></html>")
     f.close()
-    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmation.html")   
+    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\confirmation.html")   
 
+#After user presses to confirm reservation, This enters his reservation into the table of the specific roomtype he requested.
 @app.route("/confirmReservation", methods=["GET","POST"])
 def confirmRes():
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
@@ -307,26 +330,28 @@ def confirmRes():
     result1 = cur.fetchall()
     y=int(max)
     for i in range(len(result1)):
-        if(result1[i][0]==y):
+        if(result1[i][0]==y): #The first entry in the mysql entry is the id which must be unique so this makes sure y is unique.
             y+=1
     max=y
     session["startDate"] = datetime.date(int(session["startDate"][6:11]), int(session["startDate"][0:2]), int(session["startDate"][3:5]))
     session["endDate"] = datetime.date(int(session["endDate"][6:11]), int(session["endDate"][0:2]), int(session["endDate"][3:5]))
-    print(session["roomType"])
+    #print(session["roomType"])
     cur.execute("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
-    print("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
+    #print("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
     con.commit()
     cur.close()
     con.close()
     return render_template("profile.html",error_statement = "Reservation made successfully")
 
+#session[email] is the email of the currently active user. This generates all previous reservations for this user whose enddate has 
+#already passed in all roomtypes and takes him to an html page which contains this list.
 @app.route("/getPreviousReservations",methods = ["GET","POST"])
 def previousReservaions():
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()
     sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
 Union
-SELECT * FROM doubleroom WHERE email=\""""+session["email"]+"""\"
+SELECT * FROM doubleroom WHERE email=\""""+session["email"]+"""\" 
 Union
 SELECT * FROM suitefor1 WHERE email=\""""+session["email"]+"""\"
 Union
@@ -378,17 +403,19 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
             allPrevRes=allPrevRes+"Double Suite:<br>"+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"
         else:
             allPrevRes=allPrevRes+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"     
-    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html","w")
+    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getPreviousReservations.html","w")
     #f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\getPreviousReservations.html","w")
     if (len(allPrevRes)==0):
         f.write("<p>No Reservations have been made</p>")
         f.close()
-        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html")
+        return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getPreviousReservations.html")
     
     f.write("<p>"+allPrevRes+"</p>")
     f.close()
-    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html")
+    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getPreviousReservations.html")
 
+#This generates all reservations whose starttime hasnt started and lists them in an html page as a dropdown list based on roomtype.
+#It also allows him to decide what to do with the reservation he selects (i.e delete/moddify).
 @app.route("/getCurrentReservations",methods = ["GET","POST"])
 def currentReservaions():
     curRes = []
@@ -497,18 +524,18 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     allPrevRes += "<input type ='submit' name = 'submitSignup' id = 'getInvoice' value = 'Get Invoice'>\n"
     allPrevRes+= "</form>\n</body>\n</html></p>"
     #f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\currentReservation.html","w")
-    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html","w")
+    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html","w")
     #print(allPrevRes)
     if tot>0:
         f.write("<p>"+allPrevRes+"</p>")
         for i in range(100):
             ppp=i
         f.close()      
-        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html")
+        return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html")
     else:
         f.write("<p>No current reservations</p>")
         f.close()
-        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html")
+        return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html")
 
 @app.route("/modifyReservation",methods = ["GET","POST"])
 def modifyReservation():
@@ -683,25 +710,25 @@ def provideNewDate():
             typeOfAvailableRoom.append(key)
     if len(typeOfAvailableRoom) == 0:
         string = "There are no rooms available between "+str(startDate)+" and "+str(endDate)+"<br><form method = \"Post\" action=\"backToProfile\"> <input type=\"submit\" name=\"backToProfile\" id = \"backToProfile\" value = \"Press here to go back to your profile\"><br></form>"
-        f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
+        f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
         f.write("<html><p>"+string+"</p></html>")
         f.close()
         con.commit()
         cur.close()
         con.close()
-        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
+        return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
     string = "The rooms available between "+str(startDate)+" and "+str(endDate)+" are:<br><form method = \"Post\" action=\"confirmationPageModified\">"
     diffDate = (endDate-startDate).days
     for i in range(len(typeOfAvailableRoom)):
         price = pricePerRoom[typeOfAvailableRoom[i]]*diffDate
         string = string+'<input type="submit" name="'+typeOfAvailableRoom[i]+'" id = "'+typeOfAvailableRoom[i]+'" value = "'+room[typeOfAvailableRoom[i]]+'">Price:'+str(price)+'$ <br><br>'
-    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
+    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
     f.write("<html><p>"+string+"</form></p></html>")
     f.close()
     con.commit()
     cur.close()
     con.close()
-    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
+    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
 
 @app.route("/confirmationPageModified",methods = ["GET","POST"])
 def confirmModification():
@@ -717,10 +744,10 @@ def confirmModification():
     price = pricePerRoom[session["roomType"]]*numOfDays
     session["newPrice"]=price
     string = "<h2>Confirm your Reservation</h2><br>Date: "+session["newStartDate"]+" to "+session["newEndDate"]+"<br> Room Type: "+room[session["roomType"]]+"<br>Total Price:"+str(price)+"$<br><form method = \"Post\" action=\"confirmModifyingReservation\"><input type=\"submit\" name=\"confirm\" id = \"confirm\" value = \"Confirm Reservation\"></form>"
-    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmationModifying.html",'w')
+    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\confirmationModifying.html",'w')
     f.write("<html><p>"+string+"</p></html>")
     f.close()
-    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmationModifying.html")   
+    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\confirmationModifying.html")   
 
 @app.route("/confirmModifyingReservation", methods=["GET","POST"])
 def confirmModifyingRes():
@@ -792,10 +819,30 @@ def modifyRoomNubers():
     
 @app.route("/checkUsers", methods=["GET","POST"])
 def loadCheckUsers():
-    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\checkAndModifyUsers.html",'w')
-    
-    return render_template("modifyAvailableRooms.html")
+    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\checkAndModifyUsers.html",'w')
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    cur=con.cursor()
+    listofEmails=[]
 
+    sql = 'SELECT * from user'
+    cur.execute(sql)
+    result = cur.fetchall()
+    for i in range(len(result)):
+        if not (result[i][0] in listofEmails):
+            listofEmails.append(result[i][0])
+    
+    s = "<p><html>\n<body>\n<form method='POST' action = '/checkAllReservations'> \n<label for='checkusers'>Users :</label>\n <select name='users' id='users'>\n"
+    for i in range(len(listofEmails)):
+        s+="<option value='" +listofEmails[i]+ "'>"+listofEmails[i]+"</option>\n"
+    s+="<input type='submit' name='submitemail' id = 'checkreservations' value ='check all reservations'>\n"
+    s+="</select>\n</form>\n</body>\n</html></p>"
+    f.write(s)
+    f.close()
+    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\checkAndModifyUsers.html")
+
+@app.route("/checkAllReservations", methods=["GET","POST"])
+def checkAllRes():
+    return render_template("adminsPage.html")
 
 if __name__=='__main__':
     app.run(port = 80)
