@@ -790,6 +790,11 @@ def modifyRoomNubers():
     update = str(capacity[roomType])+" from "+room[roomType]+" are now available"
     return render_template("adminsPage.html", update = update)
     
+@app.route("/checkUsers", methods=["GET","POST"])
+def loadCheckUsers():
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\checkAndModifyUsers.html",'w')
+    
+    return render_template("modifyAvailableRooms.html")
 
 
 if __name__=='__main__':
