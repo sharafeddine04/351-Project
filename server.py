@@ -873,7 +873,7 @@ def modifyRoomNubers():
 def loadModifyPrices():
     return render_template("modifyPrices.html")
 
-#Increases/decreases price of rooms for selected room type as selected by the admin.
+#Set new price for the selected room.
 @app.route("/modifyRoomPrices", methods=["GET","POST"])
 def modifyRoomPrices():
     output = request.form.to_dict()
@@ -999,10 +999,12 @@ SELECT * FROM doublesuite WHERE email=\""""+email+"""\"
     f.close()
     return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\checkUserReservations.html")
 
+#When pressed, the client can view all rooms available with respective prices
 @app.route("/viewRooms", methods=["GET","POST"])
 def viewRooms():
     return render_template("roomPage.html",priceOfSingle = pricePerRoom["singleroom"], priceOfDouble = pricePerRoom["doubleroom"], priceOfSingleSuite = pricePerRoom["suitefor1"], priceOfDoubleSuite = pricePerRoom["doublesuite"])
 
+#When pressed, the admin can view all rooms available with respective prices and number of available rooms
 @app.route("/checkRooms", methods=["GET","POST"])
 def checkRooms():
     return render_template("roomPageAdmin.html",priceOfSingle = pricePerRoom["singleroom"], priceOfDouble = pricePerRoom["doubleroom"], priceOfSingleSuite = pricePerRoom["suitefor1"], priceOfDoubleSuite = pricePerRoom["doublesuite"], numOfSingle = capacity["singleroom"],numOfDouble = capacity["doubleroom"],numOfSingleSuite = capacity["suitefor1"],numOfDoubleSuite = capacity["doublesuite"])
