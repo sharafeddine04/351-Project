@@ -1,0 +1,17 @@
+<html>
+    <form method='POST' action = '/modifyRoomPrices'> 
+        <label for='modifyRoomPrices'>Pick a room type:</label>
+            <select name='modifyRoomPrices'>
+                <option value='singleroom'>Single Room</option>
+                <option value='doubleroom'>Double Room</option>
+                <option value='suitefor1'>Suite for One</option>
+                <option value='doublesuite'>Double Suite</option>
+            </select>
+        <br>
+        Enter new price <input type="number" name="newPrice" id="newPrice" >$
+        <br>
+        <input type='submit' name='submit' id = 'setNewPrice' value ='Set New Price'>
+        <br>
+        {{update}}
+    </form>
+</html>

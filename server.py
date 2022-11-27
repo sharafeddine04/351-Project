@@ -158,9 +158,7 @@ def login():
 def loadVerification():
     return render_template("verificationCode.html")
 
-
 verification_email = ""
-
 
 #Sends randomly generated number to his email (using SMTP) to be used for verification before changing password.
 @app.route("/sendVerification",methods = ["GET","POST"])
@@ -170,7 +168,7 @@ def sendVerification():
     gmail_user = "hotelreservationeece351@gmail.com"
     gmail_password = "fpdirumwuxzdzohj"
     verification_email = output["email"]
-
+    session["email"] = verification_email
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()   
     sql = 'SELECT * from user'
@@ -227,7 +225,7 @@ def newPassword():
         return render_template("newPassword.html", error_statement = error)
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()
-    cur.execute("UPDATE user SET password = %s WHERE email=%s",(password,session["verification_email"]))
+    cur.execute("UPDATE user SET password = %s WHERE email=%s",(password,session["email"]))
     con.commit()
     cur.close()
     con.close()
@@ -271,25 +269,29 @@ def loadReservation():
             typeOfAvailableRoom.append(key)
     if len(typeOfAvailableRoom) == 0:
         string = "There are no rooms available between "+str(startDate)+" and "+str(endDate)+"<br><form method = \"Post\" action=\"backToProfile\"> <input type=\"submit\" name=\"backToProfile\" id = \"backToProfile\" value = \"Press here to go back to your profile\"><br></form>"
-        f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
+        #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
+        f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
         f.write("<html><p>"+string+"</p></html>")
         f.close()
         con.commit()
         cur.close()
         con.close()
-        return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+        #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
     string = "The rooms available between "+str(startDate)+" and "+str(endDate)+" are:<br><form method = \"Post\" action=\"confirmationPage\">"
     diffDate = (endDate-startDate).days
     for i in range(len(typeOfAvailableRoom)):
         price = pricePerRoom[typeOfAvailableRoom[i]]*diffDate
         string = string+'<input type="submit" name="'+typeOfAvailableRoom[i]+'" id = "'+typeOfAvailableRoom[i]+'" value = "'+room[typeOfAvailableRoom[i]]+'">Price:'+str(price)+'$ <br><br>'
-    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
+    #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
     f.write("<html><p>"+string+"</form></p></html>")
     f.close()
     con.commit()
     cur.close()
     con.close()
-    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+    #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
 
 
 @app.route("/backToProfile",methods = ["GET","POST"])
@@ -312,10 +314,13 @@ def confirm():
     price = pricePerRoom[session["roomType"]]*numOfDays
     session["price"]=price
     string = "<h2>Confirm your Reservation</h2><br>Date: "+session["startDate"]+" to "+session["endDate"]+"<br> Room Type: "+room[session["roomType"]]+"<br>Total Price:"+str(price)+"$<br><form method = \"Post\" action=\"confirmReservation\"><input type=\"submit\" name=\"confirm\" id = \"confirm\" value = \"Confirm Reservation\"></form>"
-    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\confirmation.html",'w')
+    #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\confirmation.html",'w')
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmation.html",'w')
     f.write("<html><p>"+string+"</p></html>")
     f.close()
-    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\confirmation.html")   
+    #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\confirmation.html")   
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmation.html")   
+    
 
 #After user presses to confirm reservation, This enters his reservation into the table of the specific roomtype he requested.
 @app.route("/confirmReservation", methods=["GET","POST"])
@@ -335,8 +340,9 @@ def confirmRes():
     max=y
     session["startDate"] = datetime.date(int(session["startDate"][6:11]), int(session["startDate"][0:2]), int(session["startDate"][3:5]))
     session["endDate"] = datetime.date(int(session["endDate"][6:11]), int(session["endDate"][0:2]), int(session["endDate"][3:5]))
+    price = ((session["endDate"]-session["startDate"]).days)*pricePerRoom[session["roomType"]]
     #print(session["roomType"])
-    cur.execute("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
+    cur.execute("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"],price))
     #print("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
     con.commit()
     cur.close()
@@ -369,50 +375,55 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
         startDate = result[i][2]
         endDate = result[i][3]
         roomType = result[i][4]
+        price = result[i][5]
         if today>=endDate:
             if roomType == "singleroom" :
-                singleroom.append((startDate,endDate))
+                singleroom.append((startDate,endDate,price))
             if roomType == "doubleroom":
-                doubleroom.append((startDate,endDate))
+                doubleroom.append((startDate,endDate,price))
             if roomType == "suitefor1":
-                suitfor1.append((startDate,endDate))
+                suitfor1.append((startDate,endDate,price))
             if roomType == "doublesuite":
-                doublesuit.append((startDate,endDate))
+                doublesuit.append((startDate,endDate,price))
     allPrevRes=""
     n = len(singleroom)
     for i in range(n):
         if i == 0:
-            allPrevRes=allPrevRes+"Single Rooms:<br>"+str(singleroom[i][0])+" to "+str(singleroom[i][1])+"<br>"
+            allPrevRes=allPrevRes+"Single Rooms:<br>"+str(singleroom[i][0])+" to "+str(singleroom[i][1])+" paid: "+str(singleroom[i][2])+"$<br>"
         else:
-            allPrevRes=allPrevRes+str(singleroom[i][0])+" to "+str(singleroom[i][1])+"<br>"
+            allPrevRes=allPrevRes+str(singleroom[i][0])+" to "+str(singleroom[i][1])+" paid: "+str(singleroom[i][2])+"$<br>"
     n = len(doubleroom)
     for i in range(n):
         if i == 0:
-            allPrevRes=allPrevRes+"Double Rooms:<br>"+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+"<br>"
+            allPrevRes=allPrevRes+"Double Rooms:<br>"+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+" paid: "+str(doubleroom[i][2])+"$<br>"
         else:
-            allPrevRes=allPrevRes+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+"<br>"
+            allPrevRes=allPrevRes+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+" paid: "+str(doubleroom[i][2])+"$<br>"
     n = len(suitfor1)
     for i in range(n):
         if i == 0:
-            allPrevRes=allPrevRes+"Suite For 1:<br>"+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+"<br>"
+            allPrevRes=allPrevRes+"Suite For 1:<br>"+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+" paid: "+str(suitfor1[i][2])+"$<br>"
         else:
-            allPrevRes=allPrevRes+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+"<br>"
+            allPrevRes=allPrevRes+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+" paid: "+str(suitfor1[i][2])+"$<br>"
     n = len(doublesuit)
     for i in range(n):
         if i == 0:
-            allPrevRes=allPrevRes+"Double Suite:<br>"+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"
+            allPrevRes=allPrevRes+"Double Suite:<br>"+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+" paid: "+str(doublesuit[i][2])+"$<br>"
         else:
-            allPrevRes=allPrevRes+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+"<br>"     
-    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getPreviousReservations.html","w")
+            allPrevRes=allPrevRes+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+" paid: "+str(doublesuit[i][2])+"$<br>"     
+    #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getPreviousReservations.html","w")
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html",'w')
     #f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\getPreviousReservations.html","w")
     if (len(allPrevRes)==0):
         f.write("<p>No Reservations have been made</p>")
         f.close()
-        return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getPreviousReservations.html")
+        #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getPreviousReservations.html")
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html")
     
     f.write("<p>"+allPrevRes+"</p>")
     f.close()
-    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getPreviousReservations.html")
+    #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getPreviousReservations.html")
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getPreviousReservations.html")
+    
 
 #This generates all reservations whose starttime hasnt started and lists them in an html page as a dropdown list based on roomtype.
 #It also allows him to decide what to do with the reservation he selects (i.e delete/moddify).
@@ -442,22 +453,25 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     doublesuit = []
     today = datetime.date.today()
     for i in range(n):
+        id = result[i][0]
         startDate = result[i][2]
         endDate = result[i][3]
-        roomType = result[i][4]
+        roomType = result[i][4]        
+        price = result[i][5]
         if today<=startDate:
             if roomType == "singleroom" :
-                singleroom.append((startDate,endDate))
-                id1.append(result[i][0])
+                singleroom.append((startDate,endDate,price))
+                id1.append(id)
             if roomType == "doubleroom":
-                doubleroom.append((startDate,endDate))
-                id2.append(result[i][0])
+                doubleroom.append((startDate,endDate,price))
+                id2.append(id)
             if roomType == "suitefor1":
-                suitfor1.append((startDate,endDate))
-                id3.append(result[i][0])
+                suitfor1.append((startDate,endDate,price))
+                id3.append(id)
             if roomType == "doublesuite":
-                doublesuit.append((startDate,endDate))
-                id4.append(result[i][0])
+                doublesuit.append((startDate,endDate,price))
+                id4.append(id)
+    print(id1)
     tot=0
     allPrevRes=""
     n=len(singleroom)
@@ -467,7 +481,6 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
     if n>0:
         allPrevRes +=u
     for i in range(n):
-        
         ma= ""
         ma+= str(singleroom[i][0])+" to "+str(singleroom[i][1])
         z="singleroom"
@@ -521,21 +534,105 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
 
     allPrevRes += "</select>\n<input type='submit' name='submitSignup' id = 'modify' value ='modify'>\n"
     allPrevRes+= "<input type='submit' name='submitSignup' id = 'cancel' value ='Cancel Reservation'>\n"
-    allPrevRes += "<input type ='submit' name = 'submitSignup' id = 'getInvoice' value = 'Get Invoice'>\n"
     allPrevRes+= "</form>\n</body>\n</html></p>"
     #f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\currentReservation.html","w")
-    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html","w")
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html",'w')
+    #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html","w")
     #print(allPrevRes)
     if tot>0:
         f.write("<p>"+allPrevRes+"</p>")
         for i in range(100):
             ppp=i
         f.close()      
-        return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html")
+        #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html")
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html")
     else:
         f.write("<p>No current reservations</p>")
         f.close()
-        return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html")
+        #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html")
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html")
+
+@app.route("/getInvoice",methods = ["GET","POST"])
+def getInvoice():
+    from reportlab.platypus import SimpleDocTemplate, Table, Paragraph, TableStyle, Spacer
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet
+    tableData = [["Check-In Date", "Check-Out Date", "Room Type", "Room Price"]]
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    cur=con.cursor()
+    sql = """
+    SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
+    Union
+    SELECT * FROM doubleroom WHERE email=\""""+session["email"]+"""\"
+    Union
+    SELECT * FROM suitefor1 WHERE email=\""""+session["email"]+"""\"
+    Union
+    SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
+    """
+    cur.execute(sql)
+    result = cur.fetchall()
+    n = len(result)
+    total_price = 0
+    for i in range(n):
+        temp = {"doubleroom" : "Double Room" , "singleroom" : "Single Room" , "suitefor1": "Single Suite", "doublesuite": "Double Suite"}
+        start = result[i][2]
+        end = result[i][3]
+        price = result[i][5]
+        tableData.append([str(result[i][2]) , str(result[i][3]) , temp[result[i][4]], str(price)])
+        total_price += price
+    tableData.append(["Total" ,"" , "" , str(total_price)])
+    tableData.append(["Signature" , "" , "" , "__________"])
+    docu = SimpleDocTemplate("invoice.pdf", pagesize=A4)
+    styles = getSampleStyleSheet()
+    doc_style = styles["Heading1"]
+    doc_style.alignment = 1
+    title = Paragraph("ROOM RESERVATION INVOICE", doc_style)
+    style = TableStyle([
+            ("BOX", (0, 0), (-1, -1), 1, colors.black),
+            ("GRID", (0, 0), (4, 4), 1, colors.chocolate),
+            ("BACKGROUND", (0, 0), (3, 0), colors.skyblue),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+        ])
+    table = Table(tableData, style=style)
+    cur.execute(sql)
+    docu.build([title, Spacer(1,20), Paragraph("Dear " + session["firstName"] + " " + session["lastName"] + ", this is the invoice for your room reservation(s)"), Spacer(1,20), table])
+    em = EmailMessage()
+    context = ssl.create_default_context()
+    gmail_user = "hotelreservationeece351@gmail.com"
+    gmail_password = "fpdirumwuxzdzohj"
+    em["From"] = gmail_user
+    em["To"] = session["email"]
+    em["Subject"] = "Room Reservation Invoice"
+    text = "Dear " + session["firstName"] + " " + session["lastName"] + ",\n\nPlease find attached the invoice for your reservation(s)"
+    em.set_content(text)
+    with open("invoice.pdf","r") as invoice:
+        content = invoice.read()
+        em.add_attachment(content, subtype = "pdf", filename = "invoice.pdf")
+    try:
+        server = smtplib.SMTP_SSL('smtp.gmail.com',465, context = context)
+        server.login(gmail_user, gmail_password)
+        server.sendmail(gmail_user,session["email"],em.as_string())
+    except:
+        print ('Something went wrong...')
+        return render_template("profile.html",error_statement="Something went wrong") 
+    return render_template("profile.html",error_statement="Invoice has been sent to your email")
+
+@app.route("/viewProfile",methods = ["GET","POST"])
+def viewProfile():
+    email = session["email"]
+    password = session["password"]
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\viewProfile.html",'w')
+    string = "<html> Email: "+email+" <br> Password: "+password+"<br> <form method=\"POST\" action = \"/changePasswordFromProfile\"><input type=\"submit\" name=\"changePass\" id = \"changePass\" value = \"Change Password\"></form>"
+    f.write(string)
+    f.close()
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\viewProfile.html")
+
+@app.route("/changePasswordFromProfile",methods = ["GET","POST"])
+def changePassFromProfile():
+    return render_template("newPassword.html")
 
 @app.route("/modifyReservation",methods = ["GET","POST"])
 def modifyReservation():
@@ -544,73 +641,6 @@ def modifyReservation():
     print(session["modification"])
     if output["submitSignup"]=="modify":
         return render_template("modifyReservation.html")
-    elif output["submitSignup"] == "Get Invoice":
-        from reportlab.platypus import SimpleDocTemplate, Table, Paragraph, TableStyle, Spacer
-        from reportlab.lib import colors
-        from reportlab.lib.pagesizes import A4
-        from reportlab.lib.styles import getSampleStyleSheet
-        tableData = [["Check-In Date", "Check-Out Date", "Room Type", "Room Price"]]
-        con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
-        cur=con.cursor()
-        sql = """
-        SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
-        Union
-        SELECT * FROM doubleroom WHERE email=\""""+session["email"]+"""\"
-        Union
-        SELECT * FROM suitefor1 WHERE email=\""""+session["email"]+"""\"
-        Union
-        SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
-        """
-        cur.execute(sql)
-        result = cur.fetchall()
-        n = len(result)
-        total_price = 0
-        for i in range(n):
-            temp = {"doubleroom" : "Double Room" , "singleroom" : "Single Room" , "suitefor1": "Single Suite", "doublesuite": "Double Suite"}
-            start = result[i][2]
-            end = result[i][3]
-            diff = (end-start).days
-            price = diff*pricePerRoom[result[i][4]]
-            tableData.append([str(result[i][2]) , str(result[i][3]) , temp[result[i][4]], str(price)])
-            total_price += price
-        tableData.append(["Total" ,"" , "" , str(total_price)])
-        tableData.append(["Signature" , "" , "" , "__________"])
-        docu = SimpleDocTemplate("invoice.pdf", pagesize=A4)
-        styles = getSampleStyleSheet()
-        doc_style = styles["Heading1"]
-        doc_style.alignment = 1
-        title = Paragraph("ROOM RESERVATION INVOICE", doc_style)
-        style = TableStyle([
-                ("BOX", (0, 0), (-1, -1), 1, colors.black),
-                ("GRID", (0, 0), (4, 4), 1, colors.chocolate),
-                ("BACKGROUND", (0, 0), (3, 0), colors.skyblue),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-            ])
-        table = Table(tableData, style=style)
-        cur.execute(sql)
-        docu.build([title, Spacer(1,20), Paragraph("Dear " + session["firstName"] + " " + session["lastName"] + ", this is the invoice for your room reservation(s)"), Spacer(1,20), table])
-        em = EmailMessage()
-        context = ssl.create_default_context()
-        gmail_user = "hotelreservationeece351@gmail.com"
-        gmail_password = "fpdirumwuxzdzohj"
-        em["From"] = gmail_user
-        em["To"] = session["email"]
-        em["Subject"] = "Room Reservation Invoice"
-        text = "Dear " + session["firstName"] + " " + session["lastName"] + ",\n\nPlease find attached the invoice for your reservation(s)"
-        em.set_content(text)
-        with open("invoice.pdf","r") as invoice:
-            content = invoice.read()
-            em.add_attachment(content, subtype = "pdf", filename = "invoice.pdf")
-        try:
-            server = smtplib.SMTP_SSL('smtp.gmail.com',465, context = context)
-            server.login(gmail_user, gmail_password)
-            server.sendmail(gmail_user,session["email"],em.as_string())
-        except:
-            print ('Something went wrong...')
-        return render_template("currentReservation.html")
-
     else:
         res = output["modifyroom"]
         print(res)
@@ -710,25 +740,30 @@ def provideNewDate():
             typeOfAvailableRoom.append(key)
     if len(typeOfAvailableRoom) == 0:
         string = "There are no rooms available between "+str(startDate)+" and "+str(endDate)+"<br><form method = \"Post\" action=\"backToProfile\"> <input type=\"submit\" name=\"backToProfile\" id = \"backToProfile\" value = \"Press here to go back to your profile\"><br></form>"
-        f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
+        #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
+        f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
         f.write("<html><p>"+string+"</p></html>")
         f.close()
         con.commit()
         cur.close()
         con.close()
-        return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+        #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
     string = "The rooms available between "+str(startDate)+" and "+str(endDate)+" are:<br><form method = \"Post\" action=\"confirmationPageModified\">"
     diffDate = (endDate-startDate).days
     for i in range(len(typeOfAvailableRoom)):
         price = pricePerRoom[typeOfAvailableRoom[i]]*diffDate
         string = string+'<input type="submit" name="'+typeOfAvailableRoom[i]+'" id = "'+typeOfAvailableRoom[i]+'" value = "'+room[typeOfAvailableRoom[i]]+'">Price:'+str(price)+'$ <br><br>'
-    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
+    #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
     f.write("<html><p>"+string+"</form></p></html>")
     f.close()
     con.commit()
     cur.close()
     con.close()
-    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+    #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
+    
 
 @app.route("/confirmationPageModified",methods = ["GET","POST"])
 def confirmModification():
@@ -744,10 +779,13 @@ def confirmModification():
     price = pricePerRoom[session["roomType"]]*numOfDays
     session["newPrice"]=price
     string = "<h2>Confirm your Reservation</h2><br>Date: "+session["newStartDate"]+" to "+session["newEndDate"]+"<br> Room Type: "+room[session["roomType"]]+"<br>Total Price:"+str(price)+"$<br><form method = \"Post\" action=\"confirmModifyingReservation\"><input type=\"submit\" name=\"confirm\" id = \"confirm\" value = \"Confirm Reservation\"></form>"
-    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\confirmationModifying.html",'w')
+    #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\confirmationModifying.html",'w')
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmationModifying.html",'w')
     f.write("<html><p>"+string+"</p></html>")
     f.close()
-    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\confirmationModifying.html")   
+    #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\confirmationModifying.html")   
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmationModifying.html")   
+
 
 @app.route("/confirmModifyingReservation", methods=["GET","POST"])
 def confirmModifyingRes():
@@ -783,8 +821,11 @@ def confirmModifyingRes():
     max=y
     session["startDate"] = datetime.date(int(session["newStartDate"][6:11]), int(session["newStartDate"][0:2]), int(session["newStartDate"][3:5]))
     session["endDate"] = datetime.date(int(session["newEndDate"][6:11]), int(session["newEndDate"][0:2]), int(session["newEndDate"][3:5]))
+    numOfDays = session["endDate"]-session["startDate"]
+    numOfDays = numOfDays.days
+    price = pricePerRoom[session["roomType"]]*numOfDays
     print(session["roomType"])
-    cur.execute("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
+    cur.execute("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"],price))
     print("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
     con.commit()
     cur.close()
@@ -800,11 +841,11 @@ def modifyRoomNubers():
     output = request.form.to_dict()
     roomType = output["modifyRoomsCapacity"]
     action = output["submit"]
+    if int(output["numberOfRooms"])<0:
+        return render_template("modifyAvailableRooms.html", update = "Negative numbers are not allowed")
     if (action == "Increase Rooms"):
-        l = "increased"
         roomCap = int(output["numberOfRooms"])
     elif (action == "Decrease Rooms"):
-        l = "decreased"
         roomCap = -int(output["numberOfRooms"])
         if capacity[roomType]<-roomCap:
             return render_template("modifyAvailableRooms.html", update = "Number of rooms to be decreased is greater than  number of available rooms")
@@ -816,10 +857,31 @@ def modifyRoomNubers():
     con.commit()
     update = str(capacity[roomType])+" from "+room[roomType]+" are now available"
     return render_template("adminsPage.html", update = update)
+
+@app.route("/modifyPrices", methods=["GET","POST"])
+def loadModifyPrices():
+    return render_template("modifyPrices.html")
+
+
+@app.route("/modifyRoomPrices", methods=["GET","POST"])
+def modifyRoomPrices():
+    output = request.form.to_dict()
+    roomType = output["modifyRoomPrices"]
+    price = int(output["newPrice"])
+    if price<0:
+        return render_template("modifyPrices.html", update = "Price of room can't be negative")
+    pricePerRoom[roomType]=price
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    cur=con.cursor()
+    cur.execute(cur.execute("UPDATE roomsavailable SET price = %s WHERE roomName=%s",(price,roomType)))
+    con.commit()
+    update = room[roomType]+"'s price is now "+str(price)+"$"
+    return render_template("adminsPage.html", update = update)
     
 @app.route("/checkUsers", methods=["GET","POST"])
 def loadCheckUsers():
-    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\checkAndModifyUsers.html",'w')
+    #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\checkAndModifyUsers.html",'w')
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\checkAndModifyUsers.html",'w')
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()
     listofEmails=[]
@@ -838,11 +900,95 @@ def loadCheckUsers():
     s+="</select>\n</form>\n</body>\n</html></p>"
     f.write(s)
     f.close()
-    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\checkAndModifyUsers.html")
+    #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\checkAndModifyUsers.html")
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\checkAndModifyUsers.html")
 
 @app.route("/checkAllReservations", methods=["GET","POST"])
 def checkAllRes():
-    return render_template("adminsPage.html")
+    output = request.form.to_dict()
+    email = output["users"]
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    cur=con.cursor()
+    sql = """SELECT * FROM singleroom WHERE email= \""""+email+"""\"
+Union
+SELECT * FROM doubleroom WHERE email=\""""+email+"""\" 
+Union
+SELECT * FROM suitefor1 WHERE email=\""""+email+"""\"
+Union
+SELECT * FROM doublesuite WHERE email=\""""+email+"""\"
+"""
+    cur.execute(sql)
+    result = cur.fetchall()
+    print(result)
+    n = len(result)
+    if n == 0:
+        f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\checkUserReservations.html",'w')
+        f.write("No reservations have been made for user "+email)
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\checkUserReservations.html")
+    singleroom = []
+    doubleroom = []
+    suitfor1 = []
+    doublesuit = []
+    today = datetime.date.today()
+    for i in range(n):
+        startDate = result[i][2]
+        endDate = result[i][3]
+        roomType = result[i][4]
+        price = result [i][5]
+        if roomType == "singleroom" :
+            singleroom.append((startDate,endDate,price))
+        if roomType == "doubleroom":
+            doubleroom.append((startDate,endDate,price))
+        if roomType == "suitefor1":
+            suitfor1.append((startDate,endDate,price))
+        if roomType == "doublesuite":
+            doublesuit.append((startDate,endDate,price))
+    string = "<html><h1>All Reservations of "+email+":</h1>"
+    n = len(singleroom)
+    for i in range(n):
+        startDate = singleroom[i][0]
+        endDate = singleroom[i][1]
+        price = singleroom[i][2]
+        if i == 0:
+            string=string+"Single Rooms:<br>"+str(singleroom[i][0])+" to "+str(singleroom[i][1])+" paid: "+str(price)+"$<br>"
+        else:
+            string=string+str(singleroom[i][0])+" to "+str(singleroom[i][1])+" paid: "+str(price)+"$<br>"
+    n = len(doubleroom)
+    for i in range(n):
+        startDate = doubleroom[i][0]
+        endDate = doubleroom[i][1]
+        price = doubleroom[i][2]
+        if i == 0:
+            string=string+"Double Rooms:<br>"+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+" paid: "+str(price)+"$<br>"
+        else:
+            string=string+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+" paid: "+str(price)+"$<br>"
+    n = len(suitfor1)
+    for i in range(n):
+        startDate = suitfor1[i][0]
+        endDate = suitfor1[i][1]
+        price = suitfor1[i][2]
+        if i == 0:
+            string=string+"Suite For 1:<br>"+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+" paid: "+str(price)+"$<br>"
+        else:
+            string=string+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+" paid: "+str(price)+"$<br>"
+    n = len(doublesuit)
+    for i in range(n):
+        startDate = doublesuit[i][0]
+        endDate = doublesuit[i][1]
+        price = doublesuit[i][2]
+        if i == 0:
+            string=string+"Double Suite:<br>"+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+" paid: "+str(price)+"$<br>"
+        else:
+            string=string+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+" paid: "+str(price)+"$<br>"     
+    print(string)
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\checkUserReservations.html",'w')
+    f.write(string+"</html>")
+    f.close()
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\checkUserReservations.html")
+
+@app.route("/viewRooms", methods=["GET","POST"])
+def viewRooms():
+    return render_template("roomPage.html",priceOfSingle = pricePerRoom["singleroom"], priceOfDouble = pricePerRoom["doubleroom"], priceOfSingleSuite = pricePerRoom["suitefor1"], priceOfDoubleSuite = pricePerRoom["doublesuite"])
 
 if __name__=='__main__':
     app.run(port = 80)
