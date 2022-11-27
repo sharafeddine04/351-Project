@@ -990,5 +990,9 @@ SELECT * FROM doublesuite WHERE email=\""""+email+"""\"
 def viewRooms():
     return render_template("roomPage.html",priceOfSingle = pricePerRoom["singleroom"], priceOfDouble = pricePerRoom["doubleroom"], priceOfSingleSuite = pricePerRoom["suitefor1"], priceOfDoubleSuite = pricePerRoom["doublesuite"])
 
+@app.route("/checkRooms", methods=["GET","POST"])
+def checkRooms():
+    return render_template("roomPageAdmin.html",priceOfSingle = pricePerRoom["singleroom"], priceOfDouble = pricePerRoom["doubleroom"], priceOfSingleSuite = pricePerRoom["suitefor1"], priceOfDoubleSuite = pricePerRoom["doublesuite"], numOfSingle = capacity["singleroom"],numOfDouble = capacity["doubleroom"],numOfSingleSuite = capacity["suitefor1"],numOfDoubleSuite = capacity["doublesuite"])
+
 if __name__=='__main__':
     app.run(port = 80)

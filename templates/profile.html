@@ -1,28 +1,32 @@
 <!DOCTYPE html>
 <html>
 <body>
-
+    Reserve a Room:
     <form method="POST" action = "/loadReservationPage"> 
         Start Date: <input type="date" name = "startDate" id = "startDate"> <br><br>
         End Date: <input type="date" name = "endDate" id = "endDate" min = > <br><br>
-        <input type="submit" name="loadReservationPage" id = "loadReservationPage" value = "Check Available Rooms"><br>
+        <input type="submit" name="loadReservationPage" id = "loadReservationPage" value = "Check Available Rooms in selected interval"><br>
     </form> 
-
+    <br>    <br>
     <form method="POST" action = "/getPreviousReservations"> 
         <input type="submit" name="getPreviousReservations" id = "getPreviousReservations" value = "Get Previous Reservations"><br>
     </form> 
-
+    <br>    <br>
     <form method="POST" action = "/getCurrentReservations"> 
         <input type="submit" name="getCurrentReservations" id = "getCurrentReservations" value = "Check & Modify Current Reservations"><br>
     </form> 
-    
+    <br>    <br>
     <form method="POST" action = "/getInvoice"> 
-        <input type="submit" name="getInvoice" id = "getInvoice" value = "Get Invoice"><br>
+        <input type="submit" name="getInvoice" id = "getInvoice" value = "Get Invoice for all Reservations"><br>
     </form> 
+    <br><br>
     <form method="POST" action = "/viewProfile"> 
         <input type="submit" name="viewProfile" id = "viewProfile" value = "View Profile"><br>
     </form> 
-
+    <br><br>
+    <form method="GET" action = "/viewRooms"> 
+        <input type="submit" name="viewRooms" id = "viewRooms" value = "View Rooms with Prices">
+    </form> 
 </body>
 {{error_statement}}
 <script>
