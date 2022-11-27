@@ -33,7 +33,7 @@ def mainPage():
     for i in range(n):
         capacity[result[i][0]] = result[i][1]
         pricePerRoom[result[i][0]] = result[i][2]
-    return render_template("mainPage.html")
+    return render_template("mainPage.html") #render_template displays the html file name found in templates folder to the users screen.
 
 #Opens the signup page if signup was clicked.
 @app.route('/goToSignup', methods=["GET"])
@@ -117,7 +117,7 @@ def verifySignup():
 
 
 #This is the login function. Takes in email and password and checks that email already exists in the user table in mysql and that the password
-#matches the specific email entry. Displays error message if either is wrong.
+#matches the specific email entry. Displays error message if either is wrong. Also, if user =admin takes him to different html page.
 @app.route('/login',methods=["POST","GET"])
 def login():
     output=request.form.to_dict()
@@ -305,8 +305,6 @@ def confirm():
     output=request.form.to_dict()
     for k in output:
         session["roomType"]=k
-    #print(session["startDate"])
-    #print(session["endDate"])
     startDate = datetime.date(int(session["startDate"][6:11]), int(session["startDate"][0:2]), int(session["startDate"][3:5]))
     endDate = datetime.date(int(session["endDate"][6:11]), int(session["endDate"][0:2]), int(session["endDate"][3:5]))
     numOfDays = endDate-startDate
@@ -341,9 +339,7 @@ def confirmRes():
     session["startDate"] = datetime.date(int(session["startDate"][6:11]), int(session["startDate"][0:2]), int(session["startDate"][3:5]))
     session["endDate"] = datetime.date(int(session["endDate"][6:11]), int(session["endDate"][0:2]), int(session["endDate"][3:5]))
     price = ((session["endDate"]-session["startDate"]).days)*pricePerRoom[session["roomType"]]
-    #print(session["roomType"])
     cur.execute("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"],price))
-    #print("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
     con.commit()
     cur.close()
     con.close()
@@ -552,6 +548,9 @@ SELECT * FROM doublesuite WHERE email=\""""+session["email"]+"""\"
         #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\currentReservation.html")
         return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\currentReservation.html")
 
+#If the user presses getInvoice in profile page this function executes. Uses the reportlab package to generate the invoice as a pdf and 
+#send it to the user by email(over SMTP). The invoice includes all previous, current, and future reservations for the 
+#user along with their prices.
 @app.route("/getInvoice",methods = ["GET","POST"])
 def getInvoice():
     from reportlab.platypus import SimpleDocTemplate, Table, Paragraph, TableStyle, Spacer
@@ -620,6 +619,7 @@ def getInvoice():
         return render_template("profile.html",error_statement="Something went wrong") 
     return render_template("profile.html",error_statement="Invoice has been sent to your email")
 
+#Displays the users profile: email, password and gives the user chance to change password.
 @app.route("/viewProfile",methods = ["GET","POST"])
 def viewProfile():
     email = session["email"]
@@ -630,15 +630,18 @@ def viewProfile():
     f.close()
     return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\viewProfile.html")
 
+#Opens page to enter new password if change password is requested.
 @app.route("/changePasswordFromProfile",methods = ["GET","POST"])
 def changePassFromProfile():
     return render_template("newPassword.html")
 
+#If user selects to modify a current reservation he chooses, this executes. If delete is called this function deletes the entry and if
+#modify is selected it opens a new page to enter new date and type to be modified to.
 @app.route("/modifyReservation",methods = ["GET","POST"])
 def modifyReservation():
     output = request.form.to_dict()
-    session["modification"] = output["modifyroom"]
-    print(session["modification"])
+    session["modification"] = output["modifyroom"] #Stores the reservation he wants to change. By design, its value is set in 
+                                                #html file =roomtype+id. So we use these 2 to know which reservation in mysql table to modify.
     if output["submitSignup"]=="modify":
         return render_template("modifyReservation.html")
     else:
@@ -648,13 +651,13 @@ def modifyReservation():
         n = len(res)
         j=0
         t=""
-        for i in range(n):
+        for i in range(n): #T=roomtype of the chosen reservation
             if res[i] not in inte:
                 t+=res[i]
             else:
                 j=i
                 break
-        ma = res[j:n]
+        ma = res[j:n] #ma = id of chosen reservation
         con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
         cur=con.cursor()
         sql = """SELECT * FROM singleroom WHERE email= \""""+session["email"]+"""\"
@@ -683,6 +686,8 @@ def modifyReservation():
             con.commit()
         return render_template("profile.html",error_statement = "Your previous reservation of a "+room[str(t)]+" has been deleted")
 
+#Another helper function to check if a reservation can be placed, operates differently from previous by factoring in that a reservation
+#that is about to be deleted for modification shouldnt factor in checking if there is available capacity.
 def checkIfResAvailableNew(startDate,endDate,startOld,endOld,result,roomType):
     numberOfRoomsUsed = 0
     for i in range(len(result)):
@@ -696,6 +701,7 @@ def checkIfResAvailableNew(startDate,endDate,startOld,endOld,result,roomType):
         return True
     return False
 
+#Takes in new date that user wants to change to and checks available options in this selected date and displays them in a new page.
 @app.route("/makeModification", methods=["GET","POST"])
 def provideNewDate():
     output = request.form.to_dict()
@@ -705,7 +711,7 @@ def provideNewDate():
     endDate = datetime.date(int(endDate[0:4]),int(endDate[5:7]),int(endDate[8:10]))
     if endDate<startDate:
         return render_template("modifyReservation.html",error="Please select a valid date range")
-    session["newStartDate"]=startDate.strftime("%m/%d/%Y")
+    session["newStartDate"]=startDate.strftime("%m/%d/%Y") #To store them for use when confirming.
     session["newEndDate"]=endDate.strftime("%m/%d/%Y")
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     typeOfAvailableRoom=[]
@@ -764,7 +770,8 @@ def provideNewDate():
     #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
     return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
     
-
+#Takes in the room type user wants out of the options provided previously for his entered date range.
+#Generates the final info(room type, price, date) about what the user wants to modify to and asks for confirmation.
 @app.route("/confirmationPageModified",methods = ["GET","POST"])
 def confirmModification():
     output=request.form.to_dict()
@@ -787,6 +794,7 @@ def confirmModification():
     return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\confirmationModifying.html")   
 
 
+#Enters the new entry(reservation) into the appropriate mysql table after the user confirms the modification.
 @app.route("/confirmModifyingReservation", methods=["GET","POST"])
 def confirmModifyingRes():
     res = session["modification"]
@@ -824,18 +832,19 @@ def confirmModifyingRes():
     numOfDays = session["endDate"]-session["startDate"]
     numOfDays = numOfDays.days
     price = pricePerRoom[session["roomType"]]*numOfDays
-    print(session["roomType"])
     cur.execute("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"],price))
-    print("insert into "+session["roomType"]+" values(%s,%s,%s,%s,%s)",(max,session['email'],session["startDate"],session["endDate"],session["roomType"]))
+
     con.commit()
     cur.close()
     con.close()
     return render_template("profile.html",error_statement = "Reservation modified successfully")
 
+#Opens a new page for the admin where he can set room capacities.
 @app.route("/modifyNumberRooms", methods=["GET","POST"])
 def loadModifyRoomNumbers():
     return render_template("modifyAvailableRooms.html")
 
+#Increases/decreases number of rooms for selected room type as selected by the admin.
 @app.route("/modifyRoomsCapacity", methods=["GET","POST"])
 def modifyRoomNubers():
     output = request.form.to_dict()
@@ -853,16 +862,18 @@ def modifyRoomNubers():
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()
     print("DELETE FROM roomsavailable where ('roomName' =\""""+roomType+"""\")""")
-    cur.execute(cur.execute("UPDATE roomsavailable SET numOfRooms = %s WHERE roomName=%s",(capacity[roomType],roomType)))
+    cur.execute(cur.execute("UPDATE roomsavailable SET numOfRooms = %s WHERE roomName=%s",(capacity[roomType],roomType))) #Updates capacities
+                                                                                                                          #in the mysql table
     con.commit()
     update = str(capacity[roomType])+" from "+room[roomType]+" are now available"
     return render_template("adminsPage.html", update = update)
 
+#Opens a new page for the admin where he can set room prices.
 @app.route("/modifyPrices", methods=["GET","POST"])
 def loadModifyPrices():
     return render_template("modifyPrices.html")
 
-
+#Increases/decreases price of rooms for selected room type as selected by the admin.
 @app.route("/modifyRoomPrices", methods=["GET","POST"])
 def modifyRoomPrices():
     output = request.form.to_dict()
@@ -877,7 +888,8 @@ def modifyRoomPrices():
     con.commit()
     update = room[roomType]+"'s price is now "+str(price)+"$"
     return render_template("adminsPage.html", update = update)
-    
+
+#Generates for the admin a list of all users who have created accounts on the website.    
 @app.route("/checkUsers", methods=["GET","POST"])
 def loadCheckUsers():
     #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\checkAndModifyUsers.html",'w')
@@ -903,6 +915,7 @@ def loadCheckUsers():
     #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\checkAndModifyUsers.html")
     return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\checkAndModifyUsers.html")
 
+#The admin here would choose an email/user and this will generate all reservations made by this selected user and display in a new html file.
 @app.route("/checkAllReservations", methods=["GET","POST"])
 def checkAllRes():
     output = request.form.to_dict()
