@@ -65,6 +65,9 @@ def signup():
     if confirmPass!=session["password"]:
         error = "Password is not the same as confirmed password"
         return render_template("signupPage.html",error_statement=error, fName = session["firstName"], lName = session["lastName"], email = session["email"])
+    if len(session["password"])<6:
+        error = "Minimum length of password is 6 characters. Choose a stronger password."
+        return render_template("signupPage.html",error_statement=error, fName = session["firstName"], lName = session["lastName"], email = session["email"])
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()   
     sql = 'SELECT * from user'
@@ -999,6 +1002,89 @@ SELECT * FROM doublesuite WHERE email=\""""+email+"""\"
     f.close()
     return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\checkUserReservations.html")
 
+#When pressed, it loads a page were the admin can specify a date range to view all reservations made in this range
+@app.route("/loadResInSpecifiedDate", methods=["GET","POST"])
+def loadResInSpecifiedDate():
+    return render_template("chooseDate.html")
+
+#This generates all reservations made in the date range the admin has specified and displays them on the screen
+@app.route("/resInSpecifiedDate", methods=["GET","POST"])
+def resInSpecifiedDate():
+    con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
+    cur=con.cursor()
+    sql = """SELECT * FROM singleroom
+Union
+SELECT * FROM doubleroom 
+Union
+SELECT * FROM suitefor1  
+Union
+SELECT * FROM doublesuite 
+"""
+    cur.execute(sql)
+    result = cur.fetchall()
+    n = len(result)
+    singleroom = []
+    doubleroom = []
+    suitfor1 = []
+    doublesuit = []
+    output=request.form.to_dict()
+    startDate = output["startDate"]
+    startDate = datetime.date(int(startDate[0:4]),int(startDate[5:7]),int(startDate[8:10]))
+    endDate = output["endDate"]
+    endDate = datetime.date(int(endDate[0:4]),int(endDate[5:7]),int(endDate[8:10]))
+    for i in range(n):
+        email = result[i][1]
+        start = result[i][2]
+        end = result[i][3]
+        roomType = result[i][4]
+        price = result[i][5]
+        if ((startDate<= end and startDate>=start) or (endDate<= end and endDate>=start) or (startDate<=start  and endDate>=end)):
+            if roomType == "singleroom" :
+                singleroom.append((start,end,price,email))
+            if roomType == "doubleroom":
+                doubleroom.append((start,end,price,email))
+            if roomType == "suitefor1":
+                suitfor1.append((start,end,price,email))
+            if roomType == "doublesuite":
+                doublesuit.append((start,end,price,email))
+    allPrevRes=""
+    n = len(singleroom)
+    for i in range(n):
+        if i == 0:
+            allPrevRes=allPrevRes+"Single Rooms:<br>"+str(singleroom[i][0])+" to "+str(singleroom[i][1])+" paid: "+str(singleroom[i][2])+"$ User: "+str(singleroom[i][3])+" <br>"
+        else:
+            allPrevRes=allPrevRes+str(singleroom[i][0])+" to "+str(singleroom[i][1])+" paid: "+str(singleroom[i][2])+"$ User: "+str(singleroom[i][3])+"<br>"
+    n = len(doubleroom)
+    for i in range(n):
+        if i == 0:
+            allPrevRes=allPrevRes+"Double Rooms:<br>"+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+" paid: "+str(doubleroom[i][2])+"$ User: "+str(doubleroom[i][3])+"<br>"
+        else:
+            allPrevRes=allPrevRes+str(doubleroom[i][0])+" to "+str(doubleroom[i][1])+" paid: "+str(doubleroom[i][2])+"$ User: "+str(doubleroom[i][3])+"<br>"
+    n = len(suitfor1)
+    for i in range(n):
+        if i == 0:
+            allPrevRes=allPrevRes+"Suite For 1:<br>"+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+" paid: "+str(suitfor1[i][2])+"$ User: "+str(suitfor1[i][3])+"<br>"
+        else:
+            allPrevRes=allPrevRes+str(suitfor1[i][0])+" to "+str(suitfor1[i][1])+" paid: "+str(suitfor1[i][2])+"$ User: "+str(suitfor1[i][3])+"<br>"
+    n = len(doublesuit)
+    for i in range(n):
+        if i == 0:
+            allPrevRes=allPrevRes+"Double Suite:<br>"+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+" paid: "+str(doublesuit[i][2])+"$ User: "+str(doublesuit[i][3])+"<br>"
+        else:
+            allPrevRes=allPrevRes+str(doublesuit[i][0])+" to "+str(doublesuit[i][1])+" paid: "+str(doublesuit[i][2])+"$ User: "+str(doublesuit[i][3])+"<br>"     
+    #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getReservationsInDateRange.html","w")
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getReservationsInDateRange.html",'w')
+    #f = open("C:\\Users\\jgsou\\OneDrive\\Desktop\\AUB\\EECE 351\\351-Project\\getReservationsInDateRange.html","w")
+    if (len(allPrevRes)==0):
+        f.write("<p>No Reservations have been made</p>")
+        f.close()
+        #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getReservationsInDateRange.html")
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getReservationsInDateRange.html")    
+    f.write("<p><h1>All Reservations Made from "+str(startDate)+" to "+str(endDate)+":</h1><br>"+allPrevRes+"</p>")
+    f.close()
+    #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\getReservationsInDateRange.html")
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getReservationsInDateRange.html")
+    
 #When pressed, the client can view all rooms available with respective prices
 @app.route("/viewRooms", methods=["GET","POST"])
 def viewRooms():
