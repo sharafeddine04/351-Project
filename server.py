@@ -227,6 +227,8 @@ def newPassword():
     if password!=confirmpassword:
         error = "Passwords dont match"
         return render_template("newPassword.html", error_statement = error)
+    if len(password)<6:
+        return render_template("newPassword.html", error_statement = "Minimum length of password is 6 characters. Choose a stronger password.")
     if session["email"]=="admin":
         D["adminsPass"] = password
         return render_template("adminsPage.html",update="Password Changed Successfully")   
@@ -1099,7 +1101,7 @@ def viewRooms():
 def checkRooms():
     return render_template("roomPageAdmin.html",priceOfSingle = pricePerRoom["singleroom"], priceOfDouble = pricePerRoom["doubleroom"], priceOfSingleSuite = pricePerRoom["suitefor1"], priceOfDoubleSuite = pricePerRoom["doublesuite"], numOfSingle = capacity["singleroom"],numOfDouble = capacity["doubleroom"],numOfSingleSuite = capacity["suitefor1"],numOfDoubleSuite = capacity["doublesuite"])
 
-#Allows the admin to change his password. Once the server stops and is back up again, the admin's password is set back to admin
+#Allows the admin to change his password. Once the server stops and is back up again, the admin's password is set back to "admin"
 @app.route("/loadChangeAdminPass", methods=["GET","POST"])
 def loadChangeAdminPass():
     return render_template("newPassword.html")
