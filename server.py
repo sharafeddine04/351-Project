@@ -17,7 +17,8 @@ number = random.randint(100000,999999)
 capacity = {}
 room = {"singleroom":"Single Room", "doubleroom":"Double Room", "suitefor1":"Suite For 1", "doublesuite":"Double Suite"}
 adminUsername = "admin"
-adminsPass = "admin"
+D={}
+D["adminsPass"] = "admin"
 pricePerRoom = {}
 
 #Sets the capacities and prices based on the values set in mysql table called roomsavailabe
@@ -126,9 +127,9 @@ def login():
     output=request.form.to_dict()
     session["email"]=output['email'] #session is to keep track of who the current user. Saves for future functionalities aswell.
     session["password"]=output['password']
-    if session["email"]==adminUsername and session["password"]==adminsPass:
+    if session["email"]==adminUsername and session["password"]==D["adminsPass"]:
         return render_template("adminsPage.html")
-    elif session["email"]==adminUsername and not(session["password"]==adminsPass):
+    elif session["email"]==adminUsername and not(session["password"]==D["adminsPass"]):
         return render_template("login.html",error_statement="Incorrect admin password", email = session['email'])
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     sql = '''SELECT * from user'''
@@ -226,6 +227,9 @@ def newPassword():
     if password!=confirmpassword:
         error = "Passwords dont match"
         return render_template("newPassword.html", error_statement = error)
+    if session["email"]=="admin":
+        D["adminsPass"] = password
+        return render_template("adminsPage.html",update="Password Changed Successfully")   
     con=mysql.connector.connect(user='root',password='12345',host='localhost',database='website')
     cur=con.cursor()
     cur.execute("UPDATE user SET password = %s WHERE email=%s",(password,session["email"]))
@@ -1094,6 +1098,11 @@ def viewRooms():
 @app.route("/checkRooms", methods=["GET","POST"])
 def checkRooms():
     return render_template("roomPageAdmin.html",priceOfSingle = pricePerRoom["singleroom"], priceOfDouble = pricePerRoom["doubleroom"], priceOfSingleSuite = pricePerRoom["suitefor1"], priceOfDoubleSuite = pricePerRoom["doublesuite"], numOfSingle = capacity["singleroom"],numOfDouble = capacity["doubleroom"],numOfSingleSuite = capacity["suitefor1"],numOfDoubleSuite = capacity["doublesuite"])
+
+#Allows the admin to change his password. Once the server stops and is back up again, the admin's password is set back to admin
+@app.route("/loadChangeAdminPass", methods=["GET","POST"])
+def loadChangeAdminPass():
+    return render_template("newPassword.html")
 
 if __name__=='__main__':
     app.run(port = 80)
