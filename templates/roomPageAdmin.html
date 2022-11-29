@@ -1,10 +1,23 @@
 <html>
+    <head>
+        <link rel="stylesheet" href = "{{ url_for('static', filename='css/styles.css') }}">
+        <style>
+          .center{
+              text-align: center;
+              transform: translateY(+110%);
+    
+          }
+      </style>
+    </head>
     <body>
-        <h1> Available Rooms:</h1>
-        <p> Single Room | Price per day: {{priceOfSingle}} $ | Number of Rooms: {{numOfSingle}}</p><br>
-        <p> Double Room | Price per day: {{priceOfDouble}} $ | Number of Rooms: {{numOfDouble}}</p><br>
-        <p> Suite For 1 | Price per day: {{priceOfSingleSuite}} $ | Number of Rooms: {{numOfSingleSuite}}</p><br>
-        <p>Double Suite | Price per day: {{priceOfDoubleSuite}} $ | Number of Rooms: {{numOfDoubleSuite}}</p><br>
-        
+        <div class = "center">
+            <p style="border-width:3px; border-style:solid; border-color:brown; background-color: bisque; padding: 1em; box-sizing: content-box;">
+        Available Rooms:
+        Single Room | Price per day: {{priceOfSingle}} $ | Number of Rooms: {{numOfSingle}}<br>
+        Double Room | Price per day: {{priceOfDouble}} $ | Number of Rooms: {{numOfDouble}}<br>
+        Suite For 1 | Price per day: {{priceOfSingleSuite}} $ | Number of Rooms: {{numOfSingleSuite}}<br>
+        Double Suite | Price per day: {{priceOfDoubleSuite}} $ | Number of Rooms: {{numOfDoubleSuite}}<br>
+            </p>
+        </div>
     <body>
 <html>

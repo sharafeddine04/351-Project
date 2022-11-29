@@ -1,30 +1,36 @@
 <html>
+    <head>
+        <link rel="stylesheet" href = "{{ url_for('static', filename='css/styles.css') }}">
+        <style>
+          .center{
+              text-align: center;
+              transform: translateY(0%);
+    
+          }
+      </style>
+    </head>
+    <div class = "center">
     <h1>Hello Admin</h1>
     <form method='POST' action = '/modifyNumberRooms'>
-        <input type ='submit' name = 'modifyNumberRooms' id = 'modifyNumberRooms' value = 'Modify available rooms'>
+        <button class = "button-8" role = "button" type ='submit' name = 'modifyNumberRooms' id = 'modifyNumberRooms' value = 'Modify available rooms'>Modify available rooms</button>
     </form>
-    <br>
     <form method='POST' action = '/modifyPrices'>
-        <input type ='submit' name = 'modifyNumberRooms' id = 'modifyPrices' value = 'Modify Room Prices'>
+        <button class = "button-8" role = "button" type ='submit' name = 'modifyNumberRooms' id = 'modifyPrices' value = 'Modify Room Prices'>Modify Room Prices</button>
     </form>
-    <br>
     <form method='POST' action = '/checkUsers'>
-        <input type ='submit' name = 'submitSignup' id = 'checkUsers' value = 'Check Users and their reservations'>
+        <button class = "button-8" role = "button" type ='submit' name = 'submitSignup' id = 'checkUsers' value = 'Check Users and their reservations'>Check Users and their reservations</button>
     </form>
-    <br>
         <form method='POST' action = '/loadResInSpecifiedDate'>
-        <input type ='submit' name = 'loadResInSpecifiedDate' id = 'loadResInSpecifiedDate' value = 'Check Reservations in Specified Date Range'>
+        <button class = "button-8" role = "button" type ='submit' name = 'loadResInSpecifiedDate' id = 'loadResInSpecifiedDate' value = 'Check Reservations in Specified Date Range'>Check Reservations in Specified Date Range</button>
     </form>
-    <br>
     <form method='POST' action = '/checkRooms'>
-        <input type ='submit' name = 'checkRooms' id = 'checkRooms' value = 'Check Room Prices and Numbers'>
+        <button class = "button-8" role = "button" type ='submit' name = 'checkRooms' id = 'checkRooms' value = 'Check Room Prices and Numbers'>Check Room Prices and Numbers</button>
     </form>
-    <br>
     <form method='POST' action = '/loadChangeAdminPass'>
-        <input type ='submit' name = 'loadChangeAdminPass' id = 'loadChangeAdminPass' value = 'Change Admins Password'>
+        <button class = "button-8" role = "button" type ='submit' name = 'loadChangeAdminPass' id = 'loadChangeAdminPass' value = 'Change Admins Password'>Change Admins Password</button>
     </form>
-    <br>
         {{update}}
+    </div>
 
 
 </html>

@@ -1,15 +1,41 @@
 <!DOCTYPE html>
 <html>
+    <head>
+        <link rel="stylesheet" href = "{{ url_for('static', filename='css/styles.css') }}">
+        <style>
+            .center{
+                text-align: center;
+                transform: translateY(+85%);
+
+            }
+        </style>
+    </head>
     <body>
+        <div class = "center">
         <form method = "post" action = "/sendVerification">
-            Email <input type = "text" name = "email" id = "email" value = {{email}}>
-            <input type = "submit" name = "emailSubmit" id = "emailSubmit" value = "Get Code"><br>
+            <div class="field field_v3">
+                <label for="email" class="ha-screen-reader">E-mail</label>
+                <input name = "email" id="email" class="field__input" placeholder="e.g. professor@mail.aub.edu">
+                <span class="field__label-wrap" aria-hidden="true">
+                  <span class="field__label">E-mail</span>
+                </span>
+              </div>
+              
+            <button class = "button-8" role = "button" type = "submit" name = "emailSubmit" id = "emailSubmit" value = "Get Code">Get Code</button><br>
         </form>
         {{error_statement}}
+        <br>
         <form method="post" action = "/verificationCode">
-            Verification Code <input type = "text" name = "code" id = "code">
-            <input type = "submit" name = "codeSubmit" id = "codeSubmit">
+            <div class="field field_v3">
+                <label for="email" class="ha-screen-reader">Verification Code</label>
+                <input class="field__input" name = "code" id = "code">
+                <span class="field__label-wrap" aria-hidden="true">
+                  <span class="field__label">Verification Code</span>
+                </span>
+              </div>
+            <button class = "button-8" role = "button" type = "submit" name = "codeSubmit" id = "codeSubmit">Submit</button>
         </form>
         {{error}}
     </body>
+</div>
 </html>

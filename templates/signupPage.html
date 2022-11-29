@@ -1,16 +1,69 @@
 <html>
+  <head>
+    <link rel="stylesheet" href = "{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+      .center{
+          text-align: center;
+          transform: translateY(+40%);
+
+      }
+  </style>
+  </head>
     <body>
+      <div class = "center">
         <form method="POST" action = "/signupVerification"> 
-            Name: <input type="text" name="fName" id="fName" value = {{fName}}><br>
-            Last Name: <input type="text" name="lName" id="lName" value = {{lName}}><br>
-            Email: <input type="email" name="email" id="email" value = {{email}}><br>
-            Password: <input type="password" name="password" id="password"><br>
-            Confirm Password: <input type="password" name="confirmPassword" id="confirmPassword"><br>
+          <div class="field field_v1">
+            <label for="first-name" class="ha-screen-reader">First name</label>
+            <input name = "fName" id="first-name" class="field__input" placeholder="e.g. Stanislav">
+            <span class="field__label-wrap" aria-hidden="true">
+              <span class="field__label">First name</span>
+            </span>
+          </div>
+          <br>
+          <div class="field field_v2">
+            <label for="last-name" class="ha-screen-reader">Last name</label>
+            <input name = "lName" id="last-name"  class="field__input" placeholder="e.g. Melnikov">
+            <span class="field__label-wrap" aria-hidden="true">
+              <span class="field__label">Last name</span>
+            </span>
+          </div>    
+          <br>
+          <div class="field field_v3">
+            <label for="email" class="ha-screen-reader">E-mail</label>
+            <input name = "email" id="email" class="field__input" placeholder="e.g. melnik909@ya.ru">
+            <span class="field__label-wrap" aria-hidden="true">
+              <span class="field__label">E-mail</span>
+            </span>
+          </div>
+          <br>
+          <div class="field field_v3">
+            <label for="email" class="ha-screen-reader" type = "password">Password</label>
+            <input name = "password" id="password" class="field__input" placeholder="" type = "password">
+            <span class="field__label-wrap" aria-hidden="true">
+              <span class="field__label">Password</span>
+            </span>
+          </div>
+          <br>
+          <div class="field field_v3">
+            <label for="email" class="ha-screen-reader">Confirm Password</label>
+            <input name="confirmPassword" id="confirmPassword" class="field__input" placeholder="" type = "password">
+            <span class="field__label-wrap" aria-hidden="true">
+              <span class="field__label">Confirm Password</span>
+            </span>
+          </div>
+          <br>
+          <div class="field field_v3">
+            <p style="border-width:3px; border-style:solid; border-color:brown; background-color: bisque; padding: 1em;">
             <input type="checkbox" onclick="myFunction()">Show Password
-            <input type="checkbox" name = "HumanVerification">I'm not a robot.<br>
-            <input type="submit" name="submitSignup" id = "submitSignup" value = "Get verification code">
+            <input type="checkbox" name = "HumanVerification">I'm not a robot.
+          </p>
+          <br>
+          </div>
+          <br>
+            <button class = "button-8" role = "button"  type="submit" name="submitSignup" id = "submitSignup" value = "Get verification code">Get verification code</button>
         </form> 
         {{error_statement}}
+        </div>
     <script>
         function myFunction() {
             var x = document.getElementById("password");

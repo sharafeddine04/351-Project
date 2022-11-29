@@ -1,14 +1,30 @@
+<!doctype html>
 <html>
+    <head>
+        <link rel="stylesheet" href = "{{ url_for('static', filename='css/styles.css') }}">
+        <style>
+            .center{
+                text-align: center;
+                transform: translateY(+65%);
+
+            }
+        </style>
+    </head>
     <body>
+        <div class = "center">
         <form method="GET" action = "/goToSignup"> 
-            <input type="submit" name="submitSignup" id = "submitSignup" value = "Signup">
+            <button class = "button-8" role = "button" type="submit" name="submitSignup" id = "submitSignup" value = "Signup">Signup<br>
+            </button>
         </form> 
         <form method="GET" action = "/goToLogin"> 
-            <input type="submit" name="submitLogin" id = "submitLogin" value = "Login">
+            <button class = "button-8" role= "button" type="submit" name="submitLogin" id = "submitLogin" value = "Login">Login
+
+            </button>
         </form> 
         <form method="GET" action = "/viewRooms"> 
-            <input type="submit" name="viewRooms" id = "viewRooms" value = "View Rooms with Prices">
+            <button class = "button-8" role = "button"type="submit" name="viewRooms" id = "viewRooms" value = "View Rooms with Prices">View Rooms With Prices</button>
         </form> 
-    </body>
+    </div>
+    </body>
    {{changePassSuccess}}
 </html>

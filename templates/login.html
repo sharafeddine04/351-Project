@@ -1,15 +1,47 @@
 <html>
+  <head>
+    <link rel="stylesheet" href = "{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+      .center{
+          text-align: center;
+          transform: translateY(+40%);
+
+      }
+  </style>
+  </head>
     <body>
+      <div class = "center">
         <form method="POST" action = "/login"> 
-            Email: <input type="text" name="email" id="fName" value = {{email}}><br>
-            Password: <input type="password" name="password" id="password"><br>
-            <input type="checkbox" onclick="myFunction()">Show Password<br>
-            <input type="submit" name="login" id = "login" value = "Login"><br>
+          <div class="field field_v3">
+            <label for="email" class="ha-screen-reader">E-mail</label>
+            <input name = "email" id="email" class="field__input" placeholder="e.g. professor@mail.aub.edu">
+            <span class="field__label-wrap" aria-hidden="true">
+              <span class="field__label">E-mail</span>
+            </span>
+          </div>
+          <br>
+          <div class="field field_v3">
+            <label for="email" class="ha-screen-reader" type = "password">Password</label>
+            <input name = "password" id="password" class="field__input" placeholder="" type = "password">
+            <span class="field__label-wrap" aria-hidden="true">
+              <span class="field__label">Password</span>
+            </span>
+          </div>
+          <br>
+          <div class="field field_v3">
+            <p style="border-width:3px; border-style:solid; border-color:brown; background-color: bisque; padding: 1em;">
+            <input type="checkbox" onclick="myFunction()">Show Password
+          </p>
+          <br>
+          </div>
+          <br>
+            <button class = "button-8" role = "button" type="submit" name="login" id = "login" value = "Login">Login</button><br>
         </form> 
         <form method="GET" action = "/resetPassword">
-          <input type = "submit" name = "resetPassword" id = "resetPassword" value = "Reset Password">
+          <button class = "button-8" role = "button" type = "submit" name = "resetPassword" id = "resetPassword" value = "Reset Password">Reset Password</button>
         </form>
         {{error_statement}}
+      </div>
    </body>
    <script>
     function myFunction() {
