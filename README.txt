@@ -1,3 +1,6 @@
+Group 1: Sharafeddine Sharafeddine - Omar Kandil - Joseph Souaiby
+OS: Windows
+
 In order to run server.py, first, download MySQL and set it up. Set the username as "root", host as the "localhost" and password as "12345". 
 Once done, open setup.py and run it to create all tables needed and the database. 
 
