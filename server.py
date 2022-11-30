@@ -260,8 +260,10 @@ def checkIfResAvailable(startDate,endDate,result,roomType):
 def loadReservation():
     output=request.form.to_dict()
     startDate = output["startDate"]
-    startDate = datetime.date(int(startDate[0:4]),int(startDate[5:7]),int(startDate[8:10]))
     endDate = output["endDate"]
+    if (len(startDate)==0 or len(endDate)==0):
+        return render_template("profile.html",error_statement="Please select a valid date range")
+    startDate = datetime.date(int(startDate[0:4]),int(startDate[5:7]),int(startDate[8:10]))
     endDate = datetime.date(int(endDate[0:4]),int(endDate[5:7]),int(endDate[8:10]))
     if endDate<startDate:
         return render_template("profile.html",error_statement="Please select a valid date range")
@@ -279,13 +281,13 @@ def loadReservation():
     if len(typeOfAvailableRoom) == 0:
         string = "There are no rooms available between "+str(startDate)+" and "+str(endDate)+"<br><form method = \"Post\" action=\"backToProfile\"> <input type=\"submit\" name=\"backToProfile\" id = \"backToProfile\" value = \"Press here to go back to your profile\"><br></form>"
         #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
-        f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
+        f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
         f.write("<html><p>"+string+"</p></html>")
         f.close()
         con.commit()
         cur.close()
         con.close()
-        return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
         # return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
     string = "The rooms available between "+str(startDate)+" and "+str(endDate)+" are:<br><form method = \"Post\" action=\"confirmationPage\">"
     diffDate = (endDate-startDate).days
@@ -293,14 +295,14 @@ def loadReservation():
         price = pricePerRoom[typeOfAvailableRoom[i]]*diffDate
         string = string+'<input type="submit" name="'+typeOfAvailableRoom[i]+'" id = "'+typeOfAvailableRoom[i]+'" value = "'+room[typeOfAvailableRoom[i]]+'">Price:'+str(price)+'$ <br><br>'
     #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
-    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
     f.write("<html><p>"+string+"</form></p></html>")
     f.close()
     con.commit()
     cur.close()
     con.close()
     #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
-    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
 
 
 @app.route("/backToProfile",methods = ["GET","POST"])
@@ -756,28 +758,28 @@ def provideNewDate():
     if len(typeOfAvailableRoom) == 0:
         string = "There are no rooms available between "+str(startDate)+" and "+str(endDate)+"<br><form method = \"Post\" action=\"backToProfile\"> <input type=\"submit\" name=\"backToProfile\" id = \"backToProfile\" value = \"Press here to go back to your profile\"><br></form>"
         #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
-        f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
+        f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
         f.write("<html><p>"+string+"</p></html>")
         f.close()
         con.commit()
         cur.close()
         con.close()
         #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
-        return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+        return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
     string = "The rooms available between "+str(startDate)+" and "+str(endDate)+" are:<br><form method = \"Post\" action=\"confirmationPageModified\">"
     diffDate = (endDate-startDate).days
     for i in range(len(typeOfAvailableRoom)):
         price = pricePerRoom[typeOfAvailableRoom[i]]*diffDate
         string = string+'<input type="submit" name="'+typeOfAvailableRoom[i]+'" id = "'+typeOfAvailableRoom[i]+'" value = "'+room[typeOfAvailableRoom[i]]+'">Price:'+str(price)+'$ <br><br>'
     #f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
-    f = open("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html",'w')
+    f = open("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html",'w')
     f.write("<html><p>"+string+"</form></p></html>")
     f.close()
     con.commit()
     cur.close()
     con.close()
     #return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
-    return send_file("C:\\Users\\User\\Documents\\GitHub\\351-Project\\templates\\availableRooms.html")   
+    return send_file("C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\availableRooms.html")   
     
 #Takes in the room type user wants out of the options provided previously for his entered date range.
 #Generates the final info(room type, price, date) about what the user wants to modify to and asks for confirmation.

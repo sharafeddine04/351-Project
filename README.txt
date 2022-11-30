@@ -2,7 +2,7 @@ In order to run server.py, first, download MySQL and set it up. Set the username
 Once done, open setup.py and run it to create all tables needed and the database. 
 
 Once done with the setup.py, open the server.py. Note that you need to modify all values with open and send_file to include the correct paths.
-Thus, modify lines: 282, 289, 296, 303, 325, 329, 419, 425, 430, 544, 553, 558, 636, 640, 759, 766, 773, 780, 799, 803, 905, 925, 947, 949, 1006, 1009, 1082, 1088 and 1092.
+Thus, modify lines: 284, 291, 298, 305, 327, 331, 421, 427, 432, 546, 555, 560, 638, 642, 761, 768, 775, 782, 801, 805, 907, 927, 949, 951, 1008, 1011, 1084, 1090, and 1094.
 Note that when modifying the path, you take the path to the folder template and insert it before the name of the html file.
 (i.e. change C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\ from 
 C:\\Users\\Sharaf\\Desktop\\AUB\\FALL_22_23\\EECE_351\\351-Project\\templates\\getReservationsInDateRange.html).
